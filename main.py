@@ -32,6 +32,12 @@ class LiteRTLMLangChain(LLM):
             "extra_args": self.extra_args,
         }
 
+    @staticmethod
+    def _normalize_model_file(model_file: str) -> str:
+        if model_file.endswith(".litertlm"):
+            return model_file
+        return f"{model_file}.litertlm"
+
     def _call(
         self,
         prompt: str,
@@ -48,7 +54,7 @@ class LiteRTLMLangChain(LLM):
         cmd = [self.cli_path, "run"]
         if self.huggingface_repo:
             cmd.append(f"--from-huggingface-repo={self.huggingface_repo}")
-        cmd.append(self.model_file)
+        cmd.append(self._normalize_model_file(self.model_file))
         cmd.extend(self.extra_args)
         cmd.append(f"--prompt={prompt}")
 
@@ -104,8 +110,8 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--model-file",
-        default="gemma-3n-E2B-it-int4",
-        help="Model file or alias to pass to 'litert-lm run'.",
+        default="gemma-3n-E2B-it-int4.litertlm",
+        help="Model file or alias to pass to 'litert-lm run'. Bare names get .litertlm appended automatically.",
     )
     parser.add_argument(
         "--cli-path",

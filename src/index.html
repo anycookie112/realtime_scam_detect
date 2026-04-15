@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scam Detector</title>
+<style>
+  :root {
+    --c-bg: #0a0a12;
+    --c-surface: rgba(255,255,255,0.05);
+    --c-text: #c8cad0;
+    --c-text-dim: #5a5d66;
+    --c-text-bright: #eef0f4;
+    --c-listen: #4ade80;
+    --c-process: #f59e0b;
+    --c-scam: #ef4444;
+    --c-legit: #22c55e;
+    --c-uncertain: #eab308;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--c-bg);
+    color: var(--c-text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  header {
+    width: 100%;
+    max-width: 720px;
+    padding: 20px 16px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  header h1 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--c-text-bright);
+  }
+
+  .status-pill {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 100px;
+    background: var(--c-surface);
+    color: var(--c-text-dim);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-transform: uppercase;
+  }
+  .status-pill::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--c-text-dim);
+  }
+  .status-pill.connected { color: var(--c-listen); }
+  .status-pill.connected::before { background: var(--c-listen); }
+  .status-pill.disconnected { color: #f87171; }
+  .status-pill.disconnected::before { background: #f87171; }
+  .status-pill.processing { color: var(--c-process); }
+  .status-pill.processing::before { background: var(--c-process); }
+
+  .main-area {
+    flex: 1;
+    width: 100%;
+    max-width: 720px;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 16px 16px;
+    gap: 16px;
+    min-height: 0;
+  }
+
+  /* State indicator */
+  .state-bar {
+    text-align: center;
+    padding: 12px;
+    border-radius: 12px;
+    background: var(--c-surface);
+    font-size: 14px;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+  .state-bar.listening { color: var(--c-listen); }
+  .state-bar.processing { color: var(--c-process); }
+  .state-bar.loading { color: var(--c-text-dim); }
+
+  /* Transcript area */
+  .transcript {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.08) transparent;
+  }
+
+  .turn {
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: var(--c-surface);
+    animation: fade-in 0.25s ease-out;
+  }
+
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .turn .heard {
+    font-size: 13px;
+    color: var(--c-text);
+    line-height: 1.5;
+    margin-bottom: 8px;
+  }
+  .turn .heard::before {
+    content: '🎙 ';
+  }
+
+  .turn .doc-desc {
+    font-size: 13px;
+    color: var(--c-text);
+    line-height: 1.5;
+    margin-bottom: 8px;
+  }
+  .turn .doc-desc::before {
+    content: '📄 ';
+  }
+
+  .turn .doc-thumb {
+    max-width: 200px;
+    max-height: 150px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    opacity: 0.85;
+  }
+
+  .turn .verdict {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .verdict.SCAM { background: rgba(239,68,68,0.15); color: var(--c-scam); }
+  .verdict.LEGITIMATE { background: rgba(34,197,94,0.15); color: var(--c-legit); }
+  .verdict.UNCERTAIN { background: rgba(234,179,8,0.15); color: var(--c-uncertain); }
+
+  .turn .summary {
+    font-size: 12px;
+    color: var(--c-text-dim);
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+  .turn .recommendations {
+    margin-top: 8px;
+    padding: 0;
+    list-style: none;
+  }
+  .turn .recommendations li {
+    font-size: 12px;
+    color: var(--c-text);
+    padding: 4px 0 4px 16px;
+    position: relative;
+    line-height: 1.4;
+  }
+  .turn .recommendations li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--c-text-dim);
+  }
+
+  .turn .meta {
+    font-size: 10px;
+    color: var(--c-text-dim);
+    margin-top: 6px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .controls button {
+    flex: 1;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 16px;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    background: var(--c-surface);
+    color: var(--c-text-dim);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .controls button:hover { background: rgba(255,255,255,0.08); color: var(--c-text); }
+
+  /* File upload area */
+  .upload-area {
+    flex-shrink: 0;
+    padding: 12px;
+    border: 1px dashed rgba(255,255,255,0.1);
+    border-radius: 10px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--c-text-dim);
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .upload-area:hover { border-color: rgba(255,255,255,0.3); }
+  .upload-area input { display: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Scam Detector</h1>
+  <div id="status" class="status-pill disconnected">Disconnected</div>
+</header>
+
+<div class="main-area">
+  <div id="stateBar" class="state-bar loading">Loading model...</div>
+
+  <div id="transcript" class="transcript"></div>
+
+  <div class="upload-area" id="uploadArea">
+    <span>Drop a WAV or image file here, or click to upload</span>
+    <input type="file" id="fileInput" accept=".wav,audio/wav,.png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp">
+  </div>
+
+  <div class="controls">
+    <button id="clearBtn">Clear</button>
+  </div>
+</div>
+
+<!-- Silero VAD -->
+<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/ort.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@0.0.29/dist/bundle.min.js"></script>
+
+<script>
+const $ = id => document.getElementById(id);
+const statusEl = $('status');
+const stateBar = $('stateBar');
+const transcriptDiv = $('transcript');
+const uploadArea = $('uploadArea');
+const fileInput = $('fileInput');
+const clearBtn = $('clearBtn');
+
+let ws, mediaStream, myvad;
+let state = 'loading';
+
+// ── State machine ──
+
+function setState(s) {
+  state = s;
+  const labels = { loading: 'Loading model...', listening: '🟢 Listening — speak or upload audio', processing: '🟡 Analyzing...' };
+  stateBar.textContent = labels[s] || s;
+  stateBar.className = `state-bar ${s}`;
+}
+
+function setStatus(cls, text) {
+  statusEl.className = `status-pill ${cls}`;
+  statusEl.textContent = text;
+}
+
+// ── WebSocket ──
+
+function connect() {
+  ws = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`);
+  ws.onopen = () => {
+    setStatus('connected', 'Connected');
+    setState('listening');
+  };
+  ws.onclose = () => {
+    setStatus('disconnected', 'Disconnected');
+    setTimeout(connect, 2000);
+  };
+  // Store pending image thumbnail to attach to the response
+let pendingThumb = null;
+
+ws.onmessage = ({ data }) => {
+    const msg = JSON.parse(data);
+    if (msg.type === 'result') {
+      if (pendingThumb) {
+        msg._thumbSrc = pendingThumb;
+        pendingThumb = null;
+      }
+      addTurn(msg);
+      setState('listening');
+    }
+  };
+}
+
+// ── Audio sending ──
+
+function sendAudio(wavBase64) {
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+  setState('processing');
+  ws.send(JSON.stringify({ audio: wavBase64 }));
+}
+
+function sendImage(imgBase64) {
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+  setState('processing');
+  ws.send(JSON.stringify({ image: imgBase64 }));
+}
+
+// ── VAD speech handlers ──
+
+function handleSpeechStart() {
+  // Nothing needed — just wait for end
+}
+
+function handleSpeechEnd(audio) {
+  if (state !== 'listening') return;
+  sendAudio(float32ToWavBase64(audio));
+}
+
+// ── Float32 @ 16kHz → WAV base64 ──
+
+function float32ToWavBase64(samples) {
+  const buf = new ArrayBuffer(44 + samples.length * 2);
+  const v = new DataView(buf);
+  const w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  w(0,'RIFF'); v.setUint32(4, 36 + samples.length * 2, true); w(8,'WAVE');
+  w(12,'fmt ');
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, 16000, true); v.setUint32(28, 32000, true); v.setUint16(32, 2, true);
+  v.setUint16(34, 16, true); w(36,'data'); v.setUint32(40, samples.length * 2, true);
+  for (let i = 0; i < samples.length; i++) {
+    const s = Math.max(-1, Math.min(1, samples[i]));
+    v.setInt16(44 + i * 2, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+  }
+  const bytes = new Uint8Array(buf);
+  let bin = '';
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+
+// ── File upload → base64 ──
+
+function fileToBase64(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = btoa(
+        new Uint8Array(reader.result).reduce((s, b) => s + String.fromCharCode(b), '')
+      );
+      resolve(base64);
+    };
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+function isImageFile(file) {
+  return file.type.startsWith('image/') || /\.(png|jpe?g|webp)$/i.test(file.name);
+}
+
+// ── UI ──
+
+function addTurn(msg) {
+  const div = document.createElement('div');
+  div.className = 'turn';
+  const isDoc = msg.input_type === 'document';
+  const headerText = isDoc
+    ? (msg.description || '(no description)')
+    : (msg.transcription || '(no transcription)');
+  const headerClass = isDoc ? 'doc-desc' : 'heard';
+  // Show thumbnail if we have one stored
+  const thumbHtml = isDoc && msg._thumbSrc
+    ? `<img class="doc-thumb" src="${msg._thumbSrc}" alt="uploaded document">`
+    : '';
+  div.innerHTML = `
+    ${thumbHtml}
+    <div class="${headerClass}">${escHtml(headerText)}</div>
+    <span class="verdict ${msg.verdict}">${msg.verdict}</span>
+    <div class="summary">${escHtml(msg.summary || '')}</div>
+    ${(msg.recommendations && msg.recommendations.length) ? `<ul class="recommendations">${msg.recommendations.map(r => `<li>${escHtml(r)}</li>`).join('')}</ul>` : ''}
+    <div class="meta">LLM ${msg.llm_time}s</div>
+  `;
+  transcriptDiv.appendChild(div);
+  transcriptDiv.scrollTop = transcriptDiv.scrollHeight;
+}
+
+function escHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+clearBtn.addEventListener('click', () => { transcriptDiv.innerHTML = ''; });
+
+// ── File upload ──
+
+uploadArea.addEventListener('click', () => fileInput.click());
+uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.style.borderColor = 'rgba(255,255,255,0.4)'; });
+uploadArea.addEventListener('dragleave', () => { uploadArea.style.borderColor = ''; });
+uploadArea.addEventListener('drop', async (e) => {
+  e.preventDefault();
+  uploadArea.style.borderColor = '';
+  const file = e.dataTransfer.files[0];
+  if (file) {
+    const b64 = await fileToBase64(file);
+    if (isImageFile(file)) {
+      pendingThumb = URL.createObjectURL(file);
+      sendImage(b64);
+    } else {
+      sendAudio(b64);
+    }
+  }
+});
+fileInput.addEventListener('change', async () => {
+  const file = fileInput.files[0];
+  if (file) {
+    const b64 = await fileToBase64(file);
+    if (isImageFile(file)) {
+      pendingThumb = URL.createObjectURL(file);
+      sendImage(b64);
+    } else {
+      sendAudio(b64);
+    }
+    fileInput.value = '';
+  }
+});
+
+// ── Init ──
+
+async function init() {
+  // Get mic access
+  try {
+    mediaStream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+    });
+  } catch (e) {
+    console.error('Mic access denied:', e);
+    setState('listening');
+    setStatus('disconnected', 'No mic');
+  }
+
+  connect();
+
+  // Init VAD
+  if (mediaStream) {
+    myvad = await vad.MicVAD.new({
+      getStream: async () => new MediaStream(mediaStream.getAudioTracks()),
+      positiveSpeechThreshold: 0.5,
+      negativeSpeechThreshold: 0.25,
+      redemptionMs: 600,
+      minSpeechMs: 300,
+      preSpeechPadMs: 300,
+      onSpeechStart: handleSpeechStart,
+      onSpeechEnd: handleSpeechEnd,
+      onVADMisfire: () => { console.log('VAD misfire (too short)'); },
+      onnxWASMBasePath: "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/",
+      baseAssetPath: "https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@0.0.29/dist/",
+    });
+    myvad.start();
+    console.log('VAD initialized');
+  }
+}
+
+init();
+</script>
+</body>
+</html>
