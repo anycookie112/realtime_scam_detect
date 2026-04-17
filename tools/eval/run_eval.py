@@ -154,6 +154,10 @@ class SampleResult:
     config: str = ""
     lang: str = ""
     raw_response: dict = field(default_factory=dict)
+    # Streaming-specific (populated only when --streaming is used)
+    verdict_flips: int = 0
+    first_correct_chunk: int = -1   # -1 = never correct
+    total_chunks: int = 0
 
 
 # ── Inference core (reused from server.py) ───────────────────────────────────
@@ -329,6 +333,91 @@ def infer_clip(engine, wav_bytes: bytes, pipeline: str) -> dict:
     }
 
 
+# ── Streaming simulation ────────────────────────────────────────────────────
+
+def infer_clip_streaming(
+    engine,
+    wav_bytes: bytes,
+    pipeline: str,
+    expected: str,
+    chunk_seconds: float = 4.0,
+    overlap_seconds: float = 0.5,
+) -> dict:
+    """Simulate live streaming by chunking a WAV and processing progressively.
+
+    Returns a dict compatible with infer_clip() plus streaming-specific fields.
+    """
+    import asr  # type: ignore
+    from session import CallSession, run_turn as _run_turn
+    from audio_utils import split_wav
+
+    server = _load_server_module()
+
+    chunks = split_wav(wav_bytes, chunk_seconds, overlap_seconds)
+    if not chunks:
+        return {
+            "verdict": "UNCERTAIN",
+            "transcription": "",
+            "summary": "No audio chunks produced",
+            "recommendations": [],
+            "asr_time": 0.0,
+            "llm_time": 0.0,
+            "used_tool": False,
+            "verdict_flips": 0,
+            "first_correct_chunk": -1,
+            "total_chunks": 0,
+        }
+
+    session = CallSession(mode="live")
+    segment_results: list[dict] = []
+    total_asr = 0.0
+    total_llm = 0.0
+    verdict_flips = 0
+    prev_verdict: str | None = None
+    first_correct_chunk = -1
+
+    for i, chunk_bytes in enumerate(chunks):
+        result = _run_turn(
+            engine,
+            session,
+            wav_bytes=chunk_bytes,
+            pipeline=pipeline,
+            system_prompt=server.SYSTEM_PROMPT,
+            detect_bank_fn=server._detect_bank,
+            bank_context_fn=server._bank_context,
+            lenient_parse_fn=server._lenient_parse,
+            asr_transcribe_fn=asr.transcribe_wav if pipeline == "a" else None,
+            silence_ctx=silence_fds,
+        )
+        segment_results.append(result)
+        total_asr += result.get("asr_time", 0)
+        total_llm += result.get("llm_time", 0)
+
+        call_v = session.current_verdict
+        if prev_verdict is not None and call_v != prev_verdict:
+            verdict_flips += 1
+        prev_verdict = call_v
+
+        if first_correct_chunk == -1 and is_correct(expected, call_v):
+            first_correct_chunk = i + 1  # 1-based
+
+    final_verdict = session.current_verdict
+    last_seg = segment_results[-1] if segment_results else {}
+
+    return {
+        "verdict": final_verdict,
+        "transcription": session.running_transcript,
+        "summary": last_seg.get("summary", ""),
+        "recommendations": last_seg.get("recommendations", []),
+        "asr_time": total_asr,
+        "llm_time": total_llm,
+        "used_tool": any(s.get("used_tool") for s in segment_results),
+        "verdict_flips": verdict_flips,
+        "first_correct_chunk": first_correct_chunk,
+        "total_chunks": len(chunks),
+    }
+
+
 # ── Metrics (unchanged from old eval) ────────────────────────────────────────
 
 def compute_metrics(results: list[SampleResult]) -> dict:
@@ -373,7 +462,7 @@ def compute_metrics(results: list[SampleResult]) -> dict:
 
     total = len(results)
     correct = sum(1 for r in results if r.correct)
-    return {
+    out = {
         "total": total,
         "accuracy": round(correct / total, 3) if total else 0.0,
         "per_class": per_class,
@@ -388,6 +477,24 @@ def compute_metrics(results: list[SampleResult]) -> dict:
         "avg_llm_time_s":  round(sum(r.llm_time for r in results) / total, 2) if total else 0.0,
         "avg_total_time_s": round(sum(r.total_time for r in results) / total, 2) if total else 0.0,
     }
+
+    # Streaming-specific aggregate metrics.
+    streaming = [r for r in results if r.total_chunks > 0]
+    if streaming:
+        n = len(streaming)
+        correct_streaming = [r for r in streaming if r.first_correct_chunk > 0]
+        out["streaming"] = {
+            "n": n,
+            "avg_verdict_flips": round(sum(r.verdict_flips for r in streaming) / n, 2),
+            "avg_chunks_total": round(sum(r.total_chunks for r in streaming) / n, 1),
+            "avg_chunks_to_correct": (
+                round(sum(r.first_correct_chunk for r in correct_streaming) / len(correct_streaming), 1)
+                if correct_streaming else None
+            ),
+            "pct_eventually_correct": round(len(correct_streaming) / n, 3),
+        }
+
+    return out
 
 
 def print_report(cfg_name: str, metrics: dict, results: list[SampleResult]) -> None:
@@ -408,6 +515,14 @@ def print_report(cfg_name: str, metrics: dict, results: list[SampleResult]) -> N
     print(f"Avg ASR/LLM/total: {metrics['avg_asr_time_s']}s / "
           f"{metrics['avg_llm_time_s']}s / {metrics['avg_total_time_s']}s")
 
+    if "streaming" in metrics:
+        s = metrics["streaming"]
+        print(f"\nStreaming simulation:")
+        print(f"  avg verdict flips:      {s['avg_verdict_flips']}")
+        print(f"  avg chunks/clip:        {s['avg_chunks_total']}")
+        print(f"  avg chunks to correct:  {s['avg_chunks_to_correct']}")
+        print(f"  % eventually correct:   {s['pct_eventually_correct']}")
+
     wrong = [r for r in results if not r.correct]
     if wrong:
         print(f"\nMisclassified ({len(wrong)}):")
@@ -421,14 +536,21 @@ def write_report_files(report_dir: Path, metrics: dict, results: list[SampleResu
         "metrics": metrics,
         "results": [asdict(r) for r in results],
     }, indent=2, ensure_ascii=False))
+    has_streaming = any(r.total_chunks > 0 for r in results)
     with (report_dir / "results.csv").open("w", newline="") as f:
         w = csv.writer(f)
-        w.writerow(["name", "config", "expected", "predicted", "correct",
-                    "used_tool", "asr_time_s", "llm_time_s", "total_time_s", "summary"])
+        header = ["name", "config", "expected", "predicted", "correct",
+                  "used_tool", "asr_time_s", "llm_time_s", "total_time_s", "summary"]
+        if has_streaming:
+            header += ["total_chunks", "verdict_flips", "first_correct_chunk"]
+        w.writerow(header)
         for r in results:
-            w.writerow([r.name, r.config, r.expected, r.predicted,
-                        int(r.correct), int(r.used_tool),
-                        r.asr_time, r.llm_time, r.total_time, r.summary])
+            row = [r.name, r.config, r.expected, r.predicted,
+                   int(r.correct), int(r.used_tool),
+                   r.asr_time, r.llm_time, r.total_time, r.summary]
+            if has_streaming:
+                row += [r.total_chunks, r.verdict_flips, r.first_correct_chunk]
+            w.writerow(row)
 
 
 def write_matrix_summary_multilang(
@@ -567,12 +689,22 @@ def discover_clips(
 
 # ── Per-config runner ────────────────────────────────────────────────────────
 
-def run_config(cfg: ModelConfig, clips: list[tuple[Path, str, str]]) -> list[SampleResult]:
+def run_config(
+    cfg: ModelConfig,
+    clips: list[tuple[Path, str, str]],
+    *,
+    streaming: bool = False,
+    chunk_seconds: float = 4.0,
+    overlap_seconds: float = 0.5,
+) -> list[SampleResult]:
+    mode_label = " [streaming]" if streaming else ""
     print()
     print("#" * 72)
-    print(f"# CONFIG: {cfg.name}")
+    print(f"# CONFIG: {cfg.name}{mode_label}")
     print(f"#   pipeline={cfg.pipeline}  whisper={cfg.whisper_size}  "
           f"llm={cfg.llm_repo}/{cfg.llm_file}  backend={cfg.backend}")
+    if streaming:
+        print(f"#   chunk={chunk_seconds}s  overlap={overlap_seconds}s")
     print("#" * 72)
 
     if cfg.pipeline == "a":
@@ -588,7 +720,14 @@ def run_config(cfg: ModelConfig, clips: list[tuple[Path, str, str]]) -> list[Sam
         for wav, expected, lang in bar:
             try:
                 wav_bytes = wav.read_bytes()
-                out = infer_clip(engine, wav_bytes, cfg.pipeline)
+                if streaming:
+                    out = infer_clip_streaming(
+                        engine, wav_bytes, cfg.pipeline, expected,
+                        chunk_seconds=chunk_seconds,
+                        overlap_seconds=overlap_seconds,
+                    )
+                else:
+                    out = infer_clip(engine, wav_bytes, cfg.pipeline)
             except Exception as e:  # noqa: BLE001
                 errors.append(f"{wav.name}: {type(e).__name__}: {e}")
                 traceback.print_exc(file=sys.stderr)
@@ -610,6 +749,9 @@ def run_config(cfg: ModelConfig, clips: list[tuple[Path, str, str]]) -> list[Sam
                 config=cfg.name,
                 lang=lang,
                 raw_response=out.get("raw", {}),
+                verdict_flips=out.get("verdict_flips", 0),
+                first_correct_chunk=out.get("first_correct_chunk", -1),
+                total_chunks=out.get("total_chunks", 0),
             )
             results.append(r)
             if r.correct:
@@ -662,6 +804,12 @@ def main() -> None:
                    help="HF repo for the E4B model (guess — override if wrong)")
     p.add_argument("--e4b-file", default="gemma-4-E4B-it.litertlm",
                    help="HF filename for the E4B model")
+    p.add_argument("--streaming", action="store_true",
+                   help="Enable streaming simulation (chunk each file into segments)")
+    p.add_argument("--chunk-seconds", type=float, default=4.0,
+                   help="Chunk size in seconds for streaming simulation (default 4.0)")
+    p.add_argument("--overlap-seconds", type=float, default=0.5,
+                   help="Overlap between chunks in seconds (default 0.5)")
     args = p.parse_args()
 
     langs = resolve_langs(args.lang)
@@ -690,9 +838,17 @@ def main() -> None:
     # all_metrics[config_name][lang_or_ALL] = metrics dict
     all_metrics: dict[str, dict[str, dict]] = {}
 
+    if args.streaming:
+        print(f"Streaming: chunk={args.chunk_seconds}s  overlap={args.overlap_seconds}s")
+
     for cfg in configs:
         try:
-            results = run_config(cfg, clips)
+            results = run_config(
+                cfg, clips,
+                streaming=args.streaming,
+                chunk_seconds=args.chunk_seconds,
+                overlap_seconds=args.overlap_seconds,
+            )
         except Exception as e:  # noqa: BLE001
             print(f"\n!! config {cfg.name} crashed: {type(e).__name__}: {e}")
             traceback.print_exc(file=sys.stderr)

@@ -15,6 +15,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -47,6 +48,8 @@ import java.nio.ByteOrder
 private const val TAG = "ScamDetect"
 private const val SAMPLE_RATE = 16000
 private const val CHUNK_SECONDS = 4
+private const val OVERLAP_SECONDS = 0.5f
+private const val OVERLAP_SAMPLES = (SAMPLE_RATE * OVERLAP_SECONDS).toInt()  // 8000 samples
 
 // ── Data classes ────────────────────────────────────────────────────────────
 
@@ -58,6 +61,8 @@ data class AnalysisResult(
     val summary: String,
     val recommendations: List<String>,
     val llmTime: Double,
+    val callVerdict: String? = null,        // progressive call-level verdict (live mode)
+    val segmentVerdict: String? = null,     // per-segment verdict (live mode)
 )
 
 data class TestAudioFile(
@@ -120,6 +125,10 @@ fun ScamDetectApp() {
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
     var activeTab by remember { mutableStateOf(AppTab.LIVE) }
+
+    // Live streaming state
+    var callVerdict by remember { mutableStateOf<String?>(null) }
+    var runningTranscript by remember { mutableStateOf("") }
 
     // Test files state
     val testAudioFiles = remember { mutableStateListOf<TestAudioFile>() }
@@ -286,12 +295,24 @@ fun ScamDetectApp() {
                 summary = json.optString("summary", ""),
                 recommendations = recs,
                 llmTime = json.optDouble("llm_time", 0.0),
+                callVerdict = if (json.has("call_verdict")) json.optString("call_verdict") else null,
+                segmentVerdict = if (json.has("segment_verdict")) json.optString("segment_verdict") else null,
             )
             results.add(result)
             scope.launch { listState.animateScrollToItem(results.size - 1) }
 
-            // Update status based on verdict
-            statusText = when (result.verdict) {
+            // Update live streaming state
+            if (result.callVerdict != null) {
+                callVerdict = result.callVerdict
+            }
+            val transcript = json.optString("running_transcript", "")
+            if (transcript.isNotBlank()) {
+                runningTranscript = transcript
+            }
+
+            // Update status based on verdict (use call verdict in live mode)
+            val displayVerdict = result.callVerdict ?: result.verdict
+            statusText = when (displayVerdict) {
                 "SCAM" -> "⚠️ SCAM DETECTED"
                 "LEGITIMATE" -> "✅ Legitimate"
                 else -> "⚡ Uncertain"
@@ -304,7 +325,8 @@ fun ScamDetectApp() {
     // Connect WebSocket
     fun connect() {
         val client = OkHttpClient()
-        val url = "ws://$serverIp:$serverPort/ws"
+        val mode = if (activeTab == AppTab.LIVE) "live" else "eval"
+        val url = "ws://$serverIp:$serverPort/ws?mode=$mode"
         val request = Request.Builder().url(url).build()
         statusText = "Connecting to $url..."
 
@@ -384,11 +406,19 @@ fun ScamDetectApp() {
 
             val chunkSamples = SAMPLE_RATE * CHUNK_SECONDS
             val chunkBuffer = ShortArray(chunkSamples)
+            val overlapBuffer = ShortArray(OVERLAP_SAMPLES)
+            var hasOverlap = false
 
             try {
                 while (isActive) {
-                    // Read a full chunk
-                    var offset = 0
+                    // Prepend overlap from previous chunk
+                    val startOffset = if (hasOverlap) OVERLAP_SAMPLES else 0
+                    if (hasOverlap) {
+                        System.arraycopy(overlapBuffer, 0, chunkBuffer, 0, OVERLAP_SAMPLES)
+                    }
+
+                    // Read new audio to fill the rest of the chunk
+                    var offset = startOffset
                     while (offset < chunkSamples && isActive) {
                         val read = recorder.read(chunkBuffer, offset, chunkSamples - offset)
                         if (read > 0) offset += read
@@ -397,9 +427,15 @@ fun ScamDetectApp() {
 
                     if (!isActive || offset == 0) break
 
-                    // Check if there's actual audio (simple energy gate)
-                    val energy = chunkBuffer.take(offset).sumOf { it.toLong() * it.toLong() } / offset
-                    if (energy < 500) continue  // skip silence
+                    // Save last 0.5s for overlap with next chunk
+                    if (offset >= OVERLAP_SAMPLES) {
+                        System.arraycopy(chunkBuffer, offset - OVERLAP_SAMPLES, overlapBuffer, 0, OVERLAP_SAMPLES)
+                        hasOverlap = true
+                    }
+
+                    // Check if there's actual audio (RMS energy gate)
+                    val rms = Math.sqrt(chunkBuffer.take(offset).sumOf { it.toLong() * it.toLong() }.toDouble() / offset)
+                    if (rms < 50) continue  // skip near-silence
 
                     // Encode as WAV
                     val wav = encodeWav(chunkBuffer, offset, SAMPLE_RATE)
@@ -424,6 +460,8 @@ fun ScamDetectApp() {
         isMonitoring = false
         isConnected = false
         statusText = "Stopped"
+        callVerdict = null
+        runningTranscript = ""
     }
 
     // ── UI ──────────────────────────────────────────────────────────────────
@@ -509,6 +547,52 @@ fun ScamDetectApp() {
             }
 
             if (activeTab == AppTab.LIVE) {
+                // Call verdict banner (live mode — shows progressive verdict)
+                if (callVerdict != null && isMonitoring) {
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = verdictColor(callVerdict!!).copy(alpha = 0.15f),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Text(
+                                text = "Call Verdict: ${callVerdict}",
+                                color = verdictColor(callVerdict!!),
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+                    }
+                }
+
+                // Live transcript (scrolling)
+                if (runningTranscript.isNotBlank() && isMonitoring) {
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = SurfaceColor,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 120.dp),
+                    ) {
+                        val scrollState = rememberScrollState()
+                        LaunchedEffect(runningTranscript) {
+                            scrollState.animateScrollTo(scrollState.maxValue)
+                        }
+                        Column(
+                            modifier = Modifier
+                                .padding(10.dp)
+                                .verticalScroll(scrollState),
+                        ) {
+                            Text(
+                                text = runningTranscript,
+                                color = TextDim,
+                                fontSize = 12.sp,
+                                lineHeight = 18.sp,
+                            )
+                        }
+                    }
+                }
+
                 // Results list
                 LazyColumn(
                     state = listState,

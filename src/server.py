@@ -30,6 +30,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 
 import asr  # Pipeline A (Whisper) ASR wrapper
+from session import CallSession, run_turn
 
 # Add agents/ to path for bank_kb import (used by larger-context models)
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "agents"))
@@ -46,7 +47,10 @@ HF_REPO = os.getenv(
 HF_FILENAME = os.getenv("LITERT_ENGINE_MODEL_FILE", "gemma-4-E2B-it.litertlm")
 GPU_BACKEND = os.getenv("LITERT_ENGINE_BACKEND", "gpu").lower()
 
-# Compact system prompt — E2B has 4096 token context.
+# ── System prompts ──────────────────────────────────────────────────────────
+# Full prompt for server-side inference (GPU, no latency pressure).
+# Compact prompt for on-device inference (8-10 tok/s, must be fast).
+
 SYSTEM_PROMPT = """\
 You are a scam detection assistant for Malaysia.
 
@@ -111,6 +115,19 @@ Recommendation examples:
 - Do NOT share any OTP, PIN, or password
 - Report to NSRC (997) or Bank Negara
 - No action needed — appears routine
+"""
+
+# Compact prompt for on-device / low-tok/s inference.
+# Targets ~50-80 output tokens vs ~200+ from the full prompt.
+SYSTEM_PROMPT_COMPACT = """\
+Scam detection assistant for Malaysia. Use analyze_speech tool to reply.
+
+Rules:
+LEGITIMATE: caller verifies transaction, offers to block card, asks to visit branch.
+SCAM: asks for OTP/PIN/password/TAC, transfer to "safe account", install remote app, threatens arrest, says keep secret.
+UNCERTAIN: unclear.
+
+Keep summary under 20 words. Give 1-2 short recommendations max.
 """
 
 # ── Compact Bank Knowledge Base ──────────────────────────────────────────────
@@ -480,7 +497,13 @@ def load_engine():
         audio_backend=litert_lm.Backend.CPU,
     )
     engine.__enter__()
-    print("Engine loaded.")
+    # Detect which config matches the loaded model
+    global _current_model_key
+    for k, v in MODEL_CONFIGS.items():
+        if v["repo"] == HF_REPO and v["file"] == HF_FILENAME:
+            _current_model_key = k
+            break
+    print(f"Engine loaded. (model={_current_model_key or 'custom'})")
 
 
 @asynccontextmanager
@@ -498,6 +521,34 @@ app = FastAPI(lifespan=lifespan)
 async def root():
     html_path = Path(__file__).parent / "index.html"
     return HTMLResponse(content=html_path.read_text())
+
+
+# ── Model configs ───────────────────────────────────────────────────────────
+
+MODEL_CONFIGS = {
+    "E2B": {
+        "label": "Gemma 4 E2B (2B params)",
+        "repo": "litert-community/gemma-4-E2B-it-litert-lm",
+        "file": "gemma-4-E2B-it.litertlm",
+    },
+    "E4B": {
+        "label": "Gemma 4 E4B (4B params)",
+        "repo": "litert-community/gemma-4-E4B-it-litert-lm",
+        "file": "gemma-4-E4B-it.litertlm",
+    },
+}
+
+# Track which model is currently loaded so we can skip reload if same.
+_current_model_key: str | None = None
+
+
+@app.get("/api/models")
+async def list_models():
+    """Return available model configs and which is currently loaded."""
+    return JSONResponse({
+        "models": {k: v["label"] for k, v in MODEL_CONFIGS.items()},
+        "current": _current_model_key or "E2B",
+    })
 
 
 # ── Test file endpoints ──────────────────────────────────────────────────────
@@ -559,53 +610,170 @@ async def get_test_image(filename: str):
     return FileResponse(filepath, media_type=media)
 
 
+@app.websocket("/ws/stream-sim")
+async def stream_sim_endpoint(ws: WebSocket):
+    """Stream a test file chunk-by-chunk, sending ASR + result per chunk."""
+    await ws.accept()
+    from session import CallSession, run_turn as _run_turn, run_post_call
+    from audio_utils import split_wav
+
+    try:
+        raw = await ws.receive_text()
+        cfg = json.loads(raw)
+        filename = Path(cfg.get("file", "")).name
+        chunk_s = float(cfg.get("chunk_seconds", 15))
+        overlap_s = float(cfg.get("overlap_seconds", 1))
+        pipeline = cfg.get("pipeline", "a")
+        compact = cfg.get("compact", False)
+        model_key = cfg.get("model", "").upper()
+        whisper_size = cfg.get("whisper_size", "base")
+
+        # Swap engine if a different model was requested
+        global engine, _current_model_key
+        if model_key and model_key in MODEL_CONFIGS and model_key != _current_model_key:
+            mcfg = MODEL_CONFIGS[model_key]
+            await ws.send_text(json.dumps({"type": "status", "message": f"Loading {mcfg['label']}..."}))
+            def _swap_engine():
+                global engine, _current_model_key
+                if engine is not None:
+                    try:
+                        engine.__exit__(None, None, None)
+                    except Exception:
+                        pass
+                import litert_lm
+                from huggingface_hub import hf_hub_download
+                model_path = hf_hub_download(repo_id=mcfg["repo"], filename=mcfg["file"])
+                backend = litert_lm.Backend.GPU if GPU_BACKEND == "gpu" else litert_lm.Backend.CPU
+                engine = litert_lm.Engine(model_path, backend=backend, vision_backend=backend, audio_backend=litert_lm.Backend.CPU)
+                engine.__enter__()
+                _current_model_key = model_key
+                print(f"Engine swapped to {model_key}: {mcfg['repo']}/{mcfg['file']}")
+            await asyncio.get_event_loop().run_in_executor(None, _swap_engine)
+
+        # Swap whisper if requested
+        if pipeline == "a" and whisper_size:
+            current_ws = os.environ.get("WHISPER_MODEL_SIZE", "base")
+            if whisper_size != current_ws:
+                os.environ["WHISPER_MODEL_SIZE"] = whisper_size
+                asr._model = None  # noqa: SLF001
+                await asyncio.get_event_loop().run_in_executor(None, asr.load_model)
+
+        # Resolve file
+        wav_path = TEST_AUDIO_DIR / f"{filename}.wav"
+        if not wav_path.exists():
+            for lang_dir in (PROJECT_ROOT / "test_audio").iterdir():
+                if lang_dir.is_dir():
+                    candidate = lang_dir / f"{filename}.wav"
+                    if candidate.exists():
+                        wav_path = candidate
+                        break
+
+        if not wav_path.exists():
+            await ws.send_text(json.dumps({"type": "error", "message": f"File not found: {filename}"}))
+            return
+
+        wav_bytes = wav_path.read_bytes()
+        chunks = split_wav(wav_bytes, chunk_s, overlap_s)
+        step = chunk_s - overlap_s
+        prompt = SYSTEM_PROMPT_COMPACT if compact else SYSTEM_PROMPT
+
+        await ws.send_text(json.dumps({
+            "type": "init",
+            "total_chunks": len(chunks),
+            "file": filename,
+            "chunk_seconds": chunk_s,
+            "pipeline": pipeline,
+        }))
+
+        session = CallSession(mode="live")
+
+        for i, chunk_bytes in enumerate(chunks):
+            chunk_start = i * step
+            chunk_end = chunk_start + chunk_s
+
+            await ws.send_text(json.dumps({
+                "type": "chunk_start",
+                "chunk": i + 1,
+                "total_chunks": len(chunks),
+                "time_start": round(chunk_start, 1),
+                "time_end": round(chunk_end, 1),
+            }))
+
+            # ASR first (pipeline A) — send transcript immediately
+            if pipeline == "a":
+                asr_result = await asyncio.get_event_loop().run_in_executor(
+                    None, lambda cb=chunk_bytes: asr.transcribe_wav(cb),
+                )
+                await ws.send_text(json.dumps({
+                    "type": "asr",
+                    "chunk": i + 1,
+                    "text": asr_result.text,
+                    "asr_time": round(asr_result.asr_time_s, 2),
+                }))
+
+            # LLM inference
+            result = await asyncio.get_event_loop().run_in_executor(
+                None,
+                lambda cb=chunk_bytes: _run_turn(
+                    engine, session,
+                    wav_bytes=cb,
+                    pipeline=pipeline,
+                    system_prompt=prompt,
+                    detect_bank_fn=_detect_bank,
+                    bank_context_fn=_bank_context,
+                    lenient_parse_fn=_lenient_parse,
+                    asr_transcribe_fn=asr.transcribe_wav if pipeline == "a" else None,
+                ),
+            )
+
+            await ws.send_text(json.dumps({
+                "type": "chunk_result",
+                "chunk": i + 1,
+                "total_chunks": len(chunks),
+                "time_start": round(chunk_start, 1),
+                "time_end": round(chunk_end, 1),
+                "verdict": result.get("verdict", "UNCERTAIN"),
+                "call_verdict": session.current_verdict,
+                "transcription": result.get("transcription", ""),
+                "summary": result.get("summary", ""),
+                "recommendations": result.get("recommendations", []),
+                "asr_time": round(result.get("asr_time", 0), 2),
+                "llm_time": round(result.get("llm_time", 0), 2),
+                "detected_bank": result.get("detected_bank"),
+                "running_transcript": session.running_transcript,
+            }))
+
+        # Post-call analysis
+        report = await asyncio.get_event_loop().run_in_executor(
+            None, lambda: run_post_call(engine, session),
+        )
+        await ws.send_text(json.dumps({
+            "type": "post_call",
+            **{k: v for k, v in report.items() if k != "raw"},
+        }))
+
+        await ws.send_text(json.dumps({"type": "done"}))
+
+    except WebSocketDisconnect:
+        pass
+    except Exception:
+        traceback.print_exc(file=sys.stderr)
+
+
 @app.websocket("/ws")
 async def websocket_endpoint(ws: WebSocket):
     await ws.accept()
 
-    # Per-connection tool state
-    tool_result: dict = {}
+    # Mode: "live" (streaming with progressive verdict) or "eval" (independent files).
+    mode = ws.query_params.get("mode", "live")
+    if mode not in ("live", "eval"):
+        mode = "live"
 
-    def analyze_speech(
-        transcription: str, verdict: str, summary: str, recommendations: str
-    ) -> str:
-        """Report your analysis of this audio segment.
+    # Connection-level settings from query params.
+    default_pipeline = ws.query_params.get("pipeline", "b")
+    use_compact = ws.query_params.get("compact", "") == "1"
 
-        Args:
-            transcription: Exact transcription of what the caller said in the audio.
-            verdict: SCAM, LEGITIMATE, or UNCERTAIN.
-            summary: 1-2 sentence summary of what is happening in this call.
-            recommendations: 2-5 practical recommendations separated by newlines.
-        """
-        tool_result["type"] = "audio"
-        tool_result["transcription"] = transcription
-        tool_result["verdict"] = verdict
-        tool_result["summary"] = summary
-        tool_result["recommendations"] = recommendations
-        return "OK"
-
-    def analyze_document(
-        description: str, verdict: str, summary: str, recommendations: str
-    ) -> str:
-        """Report your analysis of an image (document, screenshot, or message).
-
-        Args:
-            description: Describe what the document contains and key details you see.
-            verdict: SCAM, LEGITIMATE, or UNCERTAIN.
-            summary: 1-2 sentence summary of the document and its purpose.
-            recommendations: 2-5 practical recommendations separated by newlines.
-        """
-        tool_result["type"] = "document"
-        tool_result["description"] = description
-        tool_result["verdict"] = verdict
-        tool_result["summary"] = summary
-        tool_result["recommendations"] = recommendations
-        return "OK"
-
-    # Rolling transcript history (text only — audio tokens are too large to
-    # accumulate in E2B's 4096 context). Each turn we create a fresh
-    # conversation with the system prompt + text history + new audio.
-    call_history: list[str] = []
+    session = CallSession(mode=mode)
 
     # Session log
     session_turns: list[dict] = []
@@ -616,9 +784,9 @@ async def websocket_endpoint(ws: WebSocket):
             raw = await ws.receive_text()
             msg = json.loads(raw)
 
-            # Allow clients to clear history for independent tests
+            # Allow clients to clear history / reset session.
             if msg.get("clear_history"):
-                call_history.clear()
+                session.reset()
                 await ws.send_text(json.dumps({"type": "history_cleared"}))
                 continue
 
@@ -628,164 +796,74 @@ async def websocket_endpoint(ws: WebSocket):
             if not has_audio and not has_image:
                 continue
 
-            # Pipeline selection — "a" = Whisper ASR → text-only Gemma,
-            # "b" = direct audio → multimodal Gemma (default, original behaviour).
-            pipeline = (msg.get("pipeline") or "b").lower()
+            # Pipeline selection — per-message overrides connection default.
+            pipeline = (msg.get("pipeline") or default_pipeline or "b").lower()
             if pipeline not in ("a", "b"):
                 pipeline = "b"
-            # Image-only requests always use the multimodal path.
             if not has_audio:
                 pipeline = "b"
 
-            # Pipeline A: transcribe with Whisper before touching the LLM.
-            asr_time = 0.0
-            asr_text = ""
-            if pipeline == "a" and has_audio:
-                wav_bytes = base64.b64decode(msg["audio"])
-                asr_result = await asyncio.get_event_loop().run_in_executor(
-                    None, lambda: asr.transcribe_wav(wav_bytes)
-                )
-                asr_text = asr_result.text
-                asr_time = asr_result.asr_time_s
-                print(f"ASR ({asr_time:.2f}s) [{asr_result.language}]: {asr_text[:120]}")
+            # In eval mode, reset session between files for independent evaluation.
+            if mode == "eval":
+                session.reset()
 
-            # Build context preamble from prior turns (text only, cheap tokens)
-            if call_history:
-                history_block = (
-                    "Conversation so far (previous segments):\n"
-                    + "\n".join(call_history[-10:])  # keep last 10 turns max
-                    + "\n\nNow analyze the NEW input below."
-                )
-            else:
-                history_block = "This is the first input."
+            # Run inference via shared run_turn.
+            result = await asyncio.get_event_loop().run_in_executor(
+                None,
+                lambda: run_turn(
+                    engine,
+                    session,
+                    audio_b64=msg.get("audio"),
+                    image_b64=msg.get("image"),
+                    pipeline=pipeline,
+                    system_prompt=SYSTEM_PROMPT_COMPACT if use_compact else SYSTEM_PROMPT,
+                    detect_bank_fn=_detect_bank,
+                    bank_context_fn=_bank_context,
+                    lenient_parse_fn=_lenient_parse,
+                    log_parse_failure_fn=_log_parse_failure,
+                    asr_transcribe_fn=asr.transcribe_wav,
+                ),
+            )
 
-            # Detect bank from history (and ASR transcript if pipeline A) and
-            # inject specific knowledge. Including asr_text here lets bank KB
-            # fire on the very first turn for pipeline A.
-            history_text = " ".join(call_history[-10:]) if call_history else ""
-            detection_text = (history_text + " " + asr_text).strip()
-            detected_bank = _detect_bank(detection_text)
-            bank_block = ""
-            if detected_bank:
-                bank_block = "\n\n" + _bank_context(detected_bank)
-                print(f"  Bank KB injected: {detected_bank}")
-
-            content: list[dict] = [{"type": "text", "text": history_block + bank_block}]
-
-            if pipeline == "a" and has_audio:
-                # Pass the transcript as text — no audio blob.
-                content.append({
-                    "type": "text",
-                    "text": f"Caller transcript (from Whisper ASR):\n\"{asr_text}\"",
-                })
-            elif has_audio:
-                content.append({"type": "audio", "blob": msg["audio"]})
-            if has_image:
-                content.append({"type": "image", "blob": msg["image"]})
-
-            # Instruction text
-            if has_audio and has_image:
-                content.append({"type": "text", "text": "The user sent audio and an image. Transcribe the audio and analyze both for scam indicators."})
-            elif pipeline == "a" and has_audio:
-                content.append({"type": "text", "text": "Analyze the transcript above for scam indicators. Use analyze_speech and put the transcript verbatim in the transcription field."})
-            elif has_audio:
-                content.append({"type": "text", "text": "Transcribe and analyze for scam indicators."})
-            else:
-                content.append({"type": "text", "text": "Analyze this document/image for scam indicators."})
-
-            # Fresh conversation each turn (avoids token accumulation).
-            # Wrap the entire inference in try/except so a single bad turn
-            # returns an error frame instead of dropping the WebSocket — this
-            # was previously the root cause of mid-eval ConnectionClosedError
-            # crashes wiping out a whole pipeline run.
-            t0 = time.time()
-            tool_result.clear()
-            response = None
-            inference_error: str | None = None
-            try:
-                conv = engine.create_conversation(
-                    messages=[{"role": "system", "content": SYSTEM_PROMPT}],
-                    tools=[analyze_speech, analyze_document],
-                )
-                conv.__enter__()
-                try:
-                    response = await asyncio.get_event_loop().run_in_executor(
-                        None,
-                        lambda: conv.send_message(
-                            {"role": "user", "content": content}
-                        ),
-                    )
-                finally:
-                    conv.__exit__(None, None, None)
-            except Exception as exc:  # noqa: BLE001 — engine raises bare Exception
-                inference_error = f"{type(exc).__name__}: {exc}"
-                print(f"!! inference failed: {inference_error}", file=sys.stderr)
-                traceback.print_exc(file=sys.stderr)
-            llm_time = time.time() - t0
-
-            if inference_error is not None:
-                # Send an error frame and continue serving the connection.
+            if result.get("error"):
                 await ws.send_text(json.dumps({
                     "type": "result",
-                    "input_type": "audio" if has_audio else "document",
+                    "input_type": result.get("input_type", "audio"),
                     "pipeline": pipeline,
                     "turn": len(session_turns) + 1,
-                    "transcription": asr_text,
-                    "description": "",
+                    "transcription": result.get("transcription", ""),
+                    "description": result.get("description", ""),
                     "verdict": "ERROR",
-                    "summary": inference_error,
+                    "summary": result["error"],
                     "recommendations": [],
-                    "asr_time": round(asr_time, 2),
-                    "llm_time": round(llm_time, 2),
-                    "total_time": round(asr_time + llm_time, 2),
-                    "error": inference_error,
+                    "asr_time": round(result.get("asr_time", 0), 2),
+                    "llm_time": round(result.get("llm_time", 0), 2),
+                    "total_time": round(result.get("asr_time", 0) + result.get("llm_time", 0), 2),
+                    "error": result["error"],
                 }))
                 continue
 
-            # Extract results from tool call or fallback
-            if tool_result:
-                strip = lambda s: s.replace('<|"|>', "").strip()
-                result_type = tool_result.get("type", "audio")
-                transcription = strip(tool_result.get("transcription", "")) if result_type == "audio" else ""
-                description = strip(tool_result.get("description", "")) if result_type == "document" else ""
-                verdict = strip(tool_result.get("verdict", "UNCERTAIN")).upper()
-                summary = strip(tool_result.get("summary", ""))
-                raw_recs = strip(tool_result.get("recommendations", ""))
-                recommendations = [r.strip().lstrip("0123456789.-) ") for r in raw_recs.split("\n") if r.strip()]
-                label = transcription or description
-                print(f"LLM ({llm_time:.2f}s) [{result_type}] {label[:80]!r} → {verdict}")
-            else:
-                # Model didn't use tool — try to recover structured fields
-                # from the raw text. Quantized E2B frequently emits malformed
-                # JSON or plain prose; we extract what we can rather than
-                # silently defaulting to UNCERTAIN.
-                raw_text = response.get("content", [{}])[0].get("text", "")
-                result_type = "audio" if has_audio else "document"
-                parsed = _lenient_parse(raw_text)
-                verdict = parsed["verdict"]
-                summary = parsed["summary"] or "Recovered from raw text (no tool call)."
-                recommendations = parsed["recommendations"]
-                transcription = parsed["transcription"] if has_audio else ""
-                description = parsed["transcription"] if not has_audio else ""
-                _log_parse_failure(raw_text, parsed)
-                print(f"LLM ({llm_time:.2f}s) [no tool → {verdict}]: {raw_text[:100]}")
+            verdict = result["verdict"]
+            transcription = result.get("transcription", "")
+            description = result.get("description", "")
+            summary = result.get("summary", "")
+            recommendations = result.get("recommendations", [])
+            asr_time = result.get("asr_time", 0)
+            llm_time = result.get("llm_time", 0)
+            result_type = result.get("input_type", "audio")
+            detected_bank = result.get("detected_bank")
 
-            # Append to rolling history (text only)
             label = transcription or description
-            call_history.append(f"[{verdict}] {label}")
+            print(f"LLM ({llm_time:.2f}s) [{result_type}] {label[:80]!r} → {verdict}")
+            if detected_bank:
+                print(f"  Bank KB injected: {detected_bank}")
 
-            # Post-inference: if bank detected in this turn's output, enrich recommendations
-            post_bank = _detect_bank(label) if not detected_bank else detected_bank
-            if post_bank and post_bank != "bogusbank":
-                b = BANK_KB[post_bank]
-                hotline_rec = f"Call {post_bank.upper()} official hotline: {b['hotline']}"
+            # Post-inference: enrich recommendations with bank hotline.
+            if detected_bank and detected_bank != "bogusbank":
+                b = BANK_KB[detected_bank]
+                hotline_rec = f"Call {detected_bank.upper()} official hotline: {b['hotline']}"
                 if hotline_rec not in recommendations:
                     recommendations.append(hotline_rec)
-
-            # For pipeline A, prefer the Whisper transcript over whatever the
-            # LLM echoed back — it's the ground truth the model was given.
-            if pipeline == "a" and asr_text:
-                transcription = asr_text
 
             total_time = asr_time + llm_time
 
@@ -805,33 +883,31 @@ async def websocket_endpoint(ws: WebSocket):
             }
             session_turns.append(turn)
 
-            # Send result back
-            await ws.send_text(
-                json.dumps(
-                    {
-                        "type": "result",
-                        "input_type": result_type,
-                        "pipeline": pipeline,
-                        "turn": turn["turn"],
-                        "transcription": transcription,
-                        "description": description,
-                        "verdict": verdict,
-                        "summary": summary,
-                        "recommendations": recommendations,
-                        "asr_time": round(asr_time, 2),
-                        "llm_time": round(llm_time, 2),
-                        "total_time": round(total_time, 2),
-                    }
-                )
-            )
+            # Build response — in live mode include progressive call_verdict.
+            response_msg: dict = {
+                "type": "result",
+                "input_type": result_type,
+                "pipeline": pipeline,
+                "turn": turn["turn"],
+                "transcription": transcription,
+                "description": description,
+                "verdict": verdict,
+                "summary": summary,
+                "recommendations": recommendations,
+                "asr_time": round(asr_time, 2),
+                "llm_time": round(llm_time, 2),
+                "total_time": round(total_time, 2),
+            }
+            if mode == "live":
+                response_msg["call_verdict"] = session.current_verdict
+                response_msg["segment_verdict"] = verdict
+                response_msg["running_transcript"] = session.running_transcript
+
+            await ws.send_text(json.dumps(response_msg))
 
     except WebSocketDisconnect:
         print("Client disconnected")
     except Exception:
-        # Anything that escapes the inference try/except (parser bugs,
-        # serialization errors, etc.) — log it loudly so the eval harness
-        # operator can actually see the root cause instead of just
-        # ConnectionClosedError.
         print("!! WebSocket handler crashed:", file=sys.stderr)
         traceback.print_exc(file=sys.stderr)
     finally:
@@ -844,9 +920,11 @@ async def websocket_endpoint(ws: WebSocket):
             session_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
             log = {
                 "session_id": session_id,
+                "mode": mode,
                 "backend": "litert-lm-engine",
                 "model": f"{HF_REPO}/{HF_FILENAME}",
                 "duration_s": round(time.time() - session_start, 1),
+                "final_verdict": session.current_verdict,
                 "turns": session_turns,
             }
             log_file = logs_dir / f"session_{session_id}.json"

@@ -35,7 +35,7 @@ class TranscriptionResult:
     asr_time_s: float
 
 
-def _decode_wav(wav_bytes: bytes) -> tuple[np.ndarray, int]:
+def decode_wav(wav_bytes: bytes) -> tuple[np.ndarray, int]:
     """Decode a WAV blob to a mono float32 numpy array at its native rate.
 
     faster-whisper accepts a numpy array directly, which avoids a temp file.
@@ -80,7 +80,7 @@ def load_model() -> "WhisperModel":
 def transcribe_wav(wav_bytes: bytes) -> TranscriptionResult:
     """Transcribe a WAV blob. Auto-detects language unless WHISPER_LANGUAGE is set."""
     model = load_model()
-    audio, _sr = _decode_wav(wav_bytes)
+    audio, _sr = decode_wav(wav_bytes)
     language = os.getenv("WHISPER_LANGUAGE") or None
 
     t0 = time.time()
