@@ -1,0 +1,34 @@
+key: cimb
+name: CIMB Bank
+aliases:
+  - cimb
+  - cimb bank
+  - cimb clicks
+
+hotline: 03-6204-7788
+fraud_line: 03-6204-7788
+
+official_numbers:
+  - number: 03-6204-7788
+    desc: Main hotline
+  - number: 1-300-880-900
+    desc: CIMB Preferred
+  - number: 03-2295-6100
+    desc: Credit card
+
+official_sms_senders:
+  - CIMB
+  - CIMBClicks
+
+app: CIMB OCTO
+auth: SecureTAC via CIMB OCTO app
+online: CIMB Clicks (cimbclicks.com.my)
+
+never: >
+  ask for TAC/OTP/password, ask to transfer to safe account,
+  install remote access apps, call from personal mobile,
+  threaten arrest, ask to keep call secret
+
+legit: >
+  verify last 4 digits of card, confirm partial IC,
+  request branch visit, send SMS from 'CIMB' sender ID

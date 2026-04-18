@@ -57,11 +57,32 @@ class CallSession:
     _compressed_summary: str = ""            # LLM summary of older transcript
     _chars_at_last_compress: int = 0         # transcript length when last compressed
 
-    # Verdict
-    current_verdict: str = "UNCERTAIN"
-    verdict_history: list[tuple] = field(default_factory=list)
-    scam_evidence: list[str] = field(default_factory=list)
-    legit_evidence: list[str] = field(default_factory=list)
+    # Risk assessment
+    current_risk_level: str = "SAFE"         # SAFE, LOW_RISK, MEDIUM_RISK, HIGH_RISK
+    current_risk_score: int = 0              # 0-100, running max
+    risk_history: list[tuple] = field(default_factory=list)
+    risk_factors: list[str] = field(default_factory=list)
+    safe_indicators: list[str] = field(default_factory=list)
+
+    # Legacy aliases for backward compat (eval harness, stream monitor)
+    @property
+    def current_verdict(self) -> str:
+        return self.current_risk_level
+    @property
+    def verdict_history(self) -> list[tuple]:
+        return self.risk_history
+    @property
+    def scam_evidence(self) -> list[str]:
+        return self.risk_factors
+    @property
+    def legit_evidence(self) -> list[str]:
+        return self.safe_indicators
+
+    # Call notepad — tracks what we've learned about the caller
+    caller_identity: str = ""                # who they claim to be
+    caller_org: str = ""                     # organization claimed
+    info_requested: list[str] = field(default_factory=list)  # what they've asked for
+    call_reason: str = ""                    # stated reason for the call
 
     # Bank
     detected_bank: str | None = None
@@ -206,57 +227,98 @@ class CallSession:
 
         parts.append("Conversation transcript so far:\n" + transcript)
 
-        # Include the previous verdict for continuity.
-        if self.verdict_history:
-            last_turn, last_v, last_s = self.verdict_history[-1]
-            verdict_line = f"\n\nPrevious analysis: {last_v}"
+        # Include the previous risk level for continuity.
+        if self.risk_history:
+            last_turn, last_v, last_s = self.risk_history[-1]
+            verdict_line = f"\n\nPrevious assessment: {last_v}"
             if last_s:
                 verdict_line += f" — {last_s}"
             parts.append(verdict_line)
+
+        # Include call notepad so model knows what's been collected.
+        notepad_lines = []
+        if self.caller_identity:
+            notepad_lines.append(f"Caller claims: {self.caller_identity}")
+        if self.call_reason:
+            notepad_lines.append(f"Reason: {self.call_reason}")
+        if self.info_requested:
+            notepad_lines.append(f"Info requested so far: {', '.join(self.info_requested)}")
+        if self.risk_factors:
+            notepad_lines.append(f"Risk factors noted: {', '.join(self.risk_factors[:5])}")
+        if notepad_lines:
+            parts.append("\nCall Notes:\n" + "\n".join(f"- {l}" for l in notepad_lines))
 
         parts.append("\nNow analyze the NEW segment below, considering the full conversation context.")
 
         return "\n".join(parts)
 
-    # ── Progressive verdict ─────────────────────────────────────────────
+    # ── Progressive risk assessment ──────────────────────────────────────
+
+    _RISK_ORDER = {"SAFE": 0, "LOW_RISK": 1, "MEDIUM_RISK": 2, "HIGH_RISK": 3}
 
     def update_verdict(
         self,
         segment_verdict: str,
         summary: str,
         recommendations: list[str] | None = None,
+        *,
+        risk_score: int = 0,
+        info_requested: str = "",
+        caller_claims: str = "",
     ) -> None:
-        """Update the call-level progressive verdict.
+        """Update the call-level progressive risk assessment.
 
         Rules:
-          - SCAM is sticky — once set, never reverts.
-          - LEGITIMATE can be overridden to SCAM.
-          - UNCERTAIN is the starting state and yields to anything.
+          - HIGH_RISK is sticky — once set, never reverts.
+          - Risk level can only escalate, never downgrade.
+          - Risk score tracks the running maximum.
         """
         self.turn_count += 1
-        self.verdict_history.append((self.turn_count, segment_verdict, summary))
+        self.risk_history.append((self.turn_count, segment_verdict, summary))
+
+        # Track risk score as running max.
+        if risk_score > 0:
+            self.current_risk_score = max(self.current_risk_score, risk_score)
 
         # Accumulate evidence from recommendations.
         if recommendations:
             for rec in recommendations:
                 lower = rec.lower()
-                if any(w in lower for w in ("hang up", "do not share", "report",
-                                            "do not transfer", "scam", "fraud")):
-                    if rec not in self.scam_evidence:
-                        self.scam_evidence.append(rec)
-                elif any(w in lower for w in ("legitimate", "routine", "no action")):
-                    if rec not in self.legit_evidence:
-                        self.legit_evidence.append(rec)
+                if any(w in lower for w in ("stop sharing", "hang up", "do not share",
+                                            "do not transfer", "do not provide",
+                                            "red flag", "high risk")):
+                    if rec not in self.risk_factors:
+                        self.risk_factors.append(rec)
+                elif any(w in lower for w in ("safe", "routine", "no action",
+                                              "no concerns", "legitimate")):
+                    if rec not in self.safe_indicators:
+                        self.safe_indicators.append(rec)
 
-        # Sticky SCAM — once flagged, never flip back.
-        if self.current_verdict == "SCAM":
+        # Update notepad from model output.
+        if caller_claims and not self.caller_identity:
+            self.caller_identity = caller_claims
+            # Try to extract org
+            for w in ("from", "at", "of"):
+                if w in caller_claims.lower():
+                    self.caller_org = caller_claims
+                    break
+        if info_requested:
+            for item in info_requested.split(","):
+                item = item.strip()
+                if item and item not in self.info_requested:
+                    self.info_requested.append(item)
+        if summary and not self.call_reason:
+            self.call_reason = summary
+
+        # Risk level can only escalate, never downgrade.
+        # HIGH_RISK is sticky.
+        if self.current_risk_level == "HIGH_RISK":
             return
 
-        if segment_verdict == "SCAM":
-            self.current_verdict = "SCAM"
-        elif segment_verdict == "LEGITIMATE" and self.current_verdict != "SCAM":
-            self.current_verdict = "LEGITIMATE"
-        # UNCERTAIN does not override an existing LEGITIMATE verdict.
+        seg_order = self._RISK_ORDER.get(segment_verdict, 0)
+        cur_order = self._RISK_ORDER.get(self.current_risk_level, 0)
+        if seg_order > cur_order:
+            self.current_risk_level = segment_verdict
 
     # ── Rate limiting ───────────────────────────────────────────────────
 
@@ -307,16 +369,23 @@ class CallSession:
     def post_call_summary(self) -> dict:
         """Return a structured summary of the call for post-call analysis."""
         return {
-            "final_verdict": self.current_verdict,
+            "final_risk_level": self.current_risk_level,
+            "final_risk_score": self.current_risk_score,
             "turn_count": self.turn_count,
             "transcript": self.running_transcript,
-            "verdict_timeline": [
-                {"turn": t, "verdict": v, "summary": s}
-                for t, v, s in self.verdict_history
+            "risk_timeline": [
+                {"turn": t, "risk_level": v, "summary": s}
+                for t, v, s in self.risk_history
             ],
-            "scam_evidence": list(self.scam_evidence),
-            "legit_evidence": list(self.legit_evidence),
+            "risk_factors": list(self.risk_factors),
+            "safe_indicators": list(self.safe_indicators),
             "detected_bank": self.detected_bank,
+            "notepad": {
+                "caller_identity": self.caller_identity,
+                "caller_org": self.caller_org,
+                "info_requested": list(self.info_requested),
+                "call_reason": self.call_reason,
+            },
         }
 
     # ── Reset ───────────────────────────────────────────────────────────
@@ -327,10 +396,15 @@ class CallSession:
         self._prev_tail = ""
         self._compressed_summary = ""
         self._chars_at_last_compress = 0
-        self.current_verdict = "UNCERTAIN"
-        self.verdict_history.clear()
-        self.scam_evidence.clear()
-        self.legit_evidence.clear()
+        self.current_risk_level = "SAFE"
+        self.current_risk_score = 0
+        self.risk_history.clear()
+        self.risk_factors.clear()
+        self.safe_indicators.clear()
+        self.caller_identity = ""
+        self.caller_org = ""
+        self.info_requested.clear()
+        self.call_reason = ""
         self.detected_bank = None
         self.turn_count = 0
         self._last_inference_ts = 0.0
@@ -346,29 +420,32 @@ class CallSession:
 import re as _re
 
 _FIELD_RE = _re.compile(
-    r'(verdict|summary|transcription|description|recommendations)\s*:\s*'
+    r'(verdict|risk_level|risk_score|summary|transcription|description|recommendations|info_requested|caller_claims)\s*:\s*'
     r'(?:<\|"\|>(.+?)<\|"\|>|"([^"]+?)"|(\w+))',
     _re.DOTALL,
 )
+
+_VALID_RISK_LEVELS = {"SAFE", "LOW_RISK", "MEDIUM_RISK", "HIGH_RISK",
+                      "SCAM", "LEGITIMATE", "UNCERTAIN", "SUSPICIOUS"}
 
 
 def _parse_tool_from_error(err_str: str) -> dict:
     """Extract tool call fields from a litert_lm RuntimeError message.
 
     The error embeds the raw model output like:
-      call:analyze_speech{verdict:SCAM,summary:<|"|>...<|"|>,...}
+      call:analyze_speech{risk_level:HIGH_RISK,summary:<|"|>...<|"|>,...}
     We regex-extract each field.
     """
-    out: dict = {"verdict": "UNCERTAIN", "summary": "", "transcription": "",
-                 "recommendations": []}
+    out: dict = {"verdict": "MEDIUM_RISK", "summary": "", "transcription": "",
+                 "recommendations": [], "info_requested": "", "caller_claims": ""}
 
     for m in _FIELD_RE.finditer(err_str):
         field = m.group(1)
         value = (m.group(2) or m.group(3) or m.group(4) or "").replace('<|"|>', "").strip()
 
-        if field == "verdict":
+        if field in ("verdict", "risk_level"):
             v = value.upper()
-            if v in ("SCAM", "LEGITIMATE", "UNCERTAIN", "SUSPICIOUS"):
+            if v in _VALID_RISK_LEVELS:
                 out["verdict"] = v
         elif field == "summary":
             out["summary"] = value
@@ -377,11 +454,19 @@ def _parse_tool_from_error(err_str: str) -> dict:
         elif field == "description":
             out["transcription"] = value  # reuse same field
         elif field == "recommendations":
-            # Split numbered/bulleted lines
             recs = [r.strip().lstrip("0123456789.-) ") for r in value.split("\n") if r.strip()]
             if not recs and value:
                 recs = [value]
             out["recommendations"] = recs
+        elif field == "risk_score":
+            try:
+                out["risk_score"] = int(value)
+            except ValueError:
+                pass
+        elif field == "info_requested":
+            out["info_requested"] = value
+        elif field == "caller_claims":
+            out["caller_claims"] = value
 
     return out
 
@@ -469,34 +554,49 @@ def run_turn(
     # ── Tool callbacks ──────────────────────────────────────────────────
     tool_result: dict = {}
 
-    def analyze_speech(transcription: str, verdict: str, summary: str, recommendations: str) -> str:
+    def analyze_speech(
+        transcription: str, risk_level: str, risk_score: int,
+        summary: str, recommendations: str,
+        info_requested: str, caller_claims: str,
+    ) -> str:
         """Report your analysis of this audio segment.
 
         Args:
-            transcription: Exact transcription of what the caller said in the audio.
-            verdict: SCAM, LEGITIMATE, or UNCERTAIN.
-            summary: 1-2 sentence summary of what is happening in this call.
-            recommendations: 2-5 practical recommendations separated by newlines.
+            transcription: Exact transcription of what the caller said.
+            risk_level: SAFE, LOW_RISK, MEDIUM_RISK, or HIGH_RISK.
+            risk_score: 0-100 integer risk score (100 = definite scam).
+            summary: 1-2 sentence summary of what is happening.
+            recommendations: What the user should say or ask to verify the caller. Separated by newlines.
+            info_requested: What information the caller has asked for so far (comma separated).
+            caller_claims: Who the caller says they are (name, org, staff ID).
         """
         tool_result["type"] = "audio"
         tool_result["transcription"] = transcription
-        tool_result["verdict"] = verdict
+        tool_result["risk_level"] = risk_level
+        tool_result["risk_score"] = risk_score
         tool_result["summary"] = summary
         tool_result["recommendations"] = recommendations
+        tool_result["info_requested"] = info_requested
+        tool_result["caller_claims"] = caller_claims
         return "OK"
 
-    def analyze_document(description: str, verdict: str, summary: str, recommendations: str) -> str:
+    def analyze_document(
+        description: str, risk_level: str, risk_score: int,
+        summary: str, recommendations: str,
+    ) -> str:
         """Report your analysis of an image (document, screenshot, or message).
 
         Args:
-            description: Describe what the document contains and key details you see.
-            verdict: SCAM, LEGITIMATE, or UNCERTAIN.
-            summary: 1-2 sentence summary of the document and its purpose.
-            recommendations: 2-5 practical recommendations separated by newlines.
+            description: Describe what the document contains and key details.
+            risk_level: SAFE, LOW_RISK, MEDIUM_RISK, or HIGH_RISK.
+            risk_score: 0-100 integer risk score.
+            summary: 1-2 sentence summary of the document.
+            recommendations: Advice for the user. Separated by newlines.
         """
         tool_result["type"] = "document"
         tool_result["description"] = description
-        tool_result["verdict"] = verdict
+        tool_result["risk_level"] = risk_level
+        tool_result["risk_score"] = risk_score
         tool_result["summary"] = summary
         tool_result["recommendations"] = recommendations
         return "OK"
@@ -552,22 +652,36 @@ def run_turn(
     # ── Parse results ───────────────────────────────────────────────────
     strip = lambda s: (s or "").replace('<|"|>', "").strip()
 
+    risk_score = 0
+    info_req = ""
+    caller_claims = ""
+
     if tool_result:
         result_type = tool_result.get("type", "audio")
         transcription = strip(tool_result.get("transcription", "")) if result_type == "audio" else ""
         description = strip(tool_result.get("description", "")) if result_type == "document" else ""
-        verdict = strip(tool_result.get("verdict", "UNCERTAIN")).upper() or "UNCERTAIN"
+        # Support both old "verdict" and new "risk_level" field names.
+        verdict = strip(tool_result.get("risk_level", "") or tool_result.get("verdict", "SAFE")).upper()
+        if verdict not in ("SAFE", "LOW_RISK", "MEDIUM_RISK", "HIGH_RISK"):
+            # Map legacy values
+            verdict = {"SCAM": "HIGH_RISK", "LEGITIMATE": "SAFE", "UNCERTAIN": "MEDIUM_RISK"}.get(verdict, "MEDIUM_RISK")
+        try:
+            risk_score = int(tool_result.get("risk_score", 0))
+        except (ValueError, TypeError):
+            risk_score = 0
         summary = strip(tool_result.get("summary", ""))
         raw_recs = strip(tool_result.get("recommendations", ""))
         recommendations = [r.strip().lstrip("0123456789.-) ") for r in raw_recs.split("\n") if r.strip()]
+        info_req = strip(tool_result.get("info_requested", ""))
+        caller_claims = strip(tool_result.get("caller_claims", ""))
         used_tool = True
     elif tool_parse_fallback:
-        # Engine threw RuntimeError because it couldn't parse the tool call
-        # format, but the raw output is in the error string. Extract fields
-        # using the same lenient parser the server uses for malformed JSON.
         result_type = "audio" if has_audio else "document"
         parsed = _parse_tool_from_error(tool_parse_fallback)
-        verdict = parsed.get("verdict", "UNCERTAIN")
+        verdict = parsed.get("verdict", "MEDIUM_RISK")
+        # Map legacy values from error parsing
+        if verdict in ("SCAM", "LEGITIMATE", "UNCERTAIN"):
+            verdict = {"SCAM": "HIGH_RISK", "LEGITIMATE": "SAFE", "UNCERTAIN": "MEDIUM_RISK"}.get(verdict, "MEDIUM_RISK")
         summary = parsed.get("summary", "Recovered from tool parse error.")
         recommendations = parsed.get("recommendations", [])
         transcription = parsed.get("transcription", "") if has_audio else ""
@@ -578,6 +692,8 @@ def run_turn(
         result_type = "audio" if has_audio else "document"
         parsed = lenient_parse_fn(raw_text)
         verdict = parsed["verdict"]
+        if verdict in ("SCAM", "LEGITIMATE", "UNCERTAIN"):
+            verdict = {"SCAM": "HIGH_RISK", "LEGITIMATE": "SAFE", "UNCERTAIN": "MEDIUM_RISK"}.get(verdict, "MEDIUM_RISK")
         summary = parsed["summary"] or "Recovered from raw text (no tool call)."
         recommendations = parsed["recommendations"]
         transcription = parsed["transcription"] if has_audio else ""
@@ -596,8 +712,13 @@ def run_turn(
     if session.mode == "live" and pipeline == "b" and transcription:
         session.add_transcript(transcription)
 
-    # Update progressive verdict.
-    session.update_verdict(verdict, summary, recommendations)
+    # Update progressive risk assessment.
+    session.update_verdict(
+        verdict, summary, recommendations,
+        risk_score=risk_score,
+        info_requested=info_req,
+        caller_claims=caller_claims,
+    )
     session.mark_inference_done()
 
     # Compress old transcript if it's getting too long.
@@ -609,41 +730,57 @@ def run_turn(
         detected_bank = session.detect_bank(label, detect_bank_fn)
 
     return {
-        "verdict": verdict,
-        "segment_verdict": verdict,
-        "call_verdict": session.current_verdict,
+        "verdict": verdict,                          # segment risk level
+        "risk_level": verdict,                       # alias
+        "risk_score": risk_score,
+        "segment_verdict": verdict,                  # backward compat
+        "call_verdict": session.current_risk_level,  # progressive
+        "call_risk_level": session.current_risk_level,
+        "call_risk_score": session.current_risk_score,
         "input_type": result_type,
         "transcription": transcription,
         "description": description,
         "summary": summary,
         "recommendations": recommendations,
+        "info_requested": info_req,
+        "caller_claims": caller_claims,
         "asr_time": asr_time,
         "llm_time": llm_time,
         "used_tool": used_tool,
         "detected_bank": detected_bank,
+        "notepad": {
+            "caller_identity": session.caller_identity,
+            "caller_org": session.caller_org,
+            "info_requested": list(session.info_requested),
+            "call_reason": session.call_reason,
+            "risk_factors": list(session.risk_factors),
+        },
     }
 
 
 POST_CALL_PROMPT = """\
-You are a scam call analyst. Given the full transcript and real-time analysis \
-from a phone call, produce a detailed post-call report.
+You are a call safety analyst. Given the full transcript and real-time risk \
+assessment from a phone call, produce a detailed post-call report.
 
 Respond with a JSON object containing these fields:
-- final_verdict: "SCAM", "LEGITIMATE", or "UNCERTAIN"
+- final_risk_level: "SAFE", "LOW_RISK", "MEDIUM_RISK", or "HIGH_RISK"
 - confidence: "HIGH", "MEDIUM", or "LOW"
-- risk_score: integer 0-100 (100 = definitely scam)
-- call_summary: 2-3 sentence summary of what happened in the call
-- evidence: list of specific quotes/behaviors that support the verdict
-- red_flags: list of scam indicators found (empty list [] if legitimate)
-- legitimate_indicators: list of legitimate behaviors found (empty list [] if scam)
+- risk_score: integer 0-100 (100 = definite scam)
+- call_summary: 2-3 sentence summary of what happened
+- caller_identity: who the caller claimed to be
+- info_requested: list of information the caller asked for
+- risk_factors: list of concerning behaviors found (empty if SAFE)
+- safe_indicators: list of legitimate behaviors found (empty if HIGH_RISK)
 - timeline: list of objects with "time" and "event" describing key moments
-- recommended_actions: list of specific next steps for the user. \
-  For LEGITIMATE calls: simple confirmation steps only (e.g. "No action needed"). \
-  Do NOT recommend reporting legitimate calls to authorities. \
-  For SCAM calls: recommend hanging up, not sharing info, reporting to police/bank.
-- report_for_authorities: ONLY include this field if verdict is SCAM. \
-  Write a paragraph suitable for filing a police report. \
-  If the call is LEGITIMATE, set this to null or omit it entirely.
+- recommended_actions: list of next steps for the user. \
+  For SAFE/LOW_RISK: "No action needed" or simple confirmation steps. \
+  For MEDIUM_RISK: verification steps — call official hotline to confirm. \
+  For HIGH_RISK: stop sharing info, hang up, report to police/bank.
+- verification_questions: list of questions the user could have asked to \
+  verify the caller's legitimacy (e.g. "What is your staff ID?", \
+  "Can I call back on the official number?")
+- report_for_authorities: ONLY if HIGH_RISK. Write a paragraph suitable \
+  for filing a police report. Omit or null for other risk levels.
 """
 
 
@@ -662,25 +799,34 @@ def run_post_call(
     summary = session.post_call_summary()
 
     # Build the user message with full context.
-    verdict_timeline_text = ""
-    for entry in summary["verdict_timeline"]:
-        verdict_timeline_text += (
-            f"  Turn {entry['turn']}: {entry['verdict']}"
+    timeline_text = ""
+    for entry in summary["risk_timeline"]:
+        timeline_text += (
+            f"  Turn {entry['turn']}: {entry['risk_level']}"
             f" — {entry['summary']}\n"
         )
+
+    notepad = summary.get("notepad", {})
+    notepad_text = (
+        f"Caller: {notepad.get('caller_identity', 'unknown')}\n"
+        f"Reason: {notepad.get('call_reason', 'unknown')}\n"
+        f"Info requested: {', '.join(notepad.get('info_requested', [])) or 'none'}\n"
+    )
 
     user_content = (
         f"== CALL TRANSCRIPT ==\n"
         f"{summary['transcript']}\n\n"
         f"== REAL-TIME ANALYSIS ==\n"
-        f"Final verdict: {summary['final_verdict']}\n"
+        f"Final risk level: {summary['final_risk_level']}\n"
+        f"Final risk score: {summary['final_risk_score']}/100\n"
         f"Bank detected: {summary['detected_bank'] or 'none'}\n"
         f"Total turns analyzed: {summary['turn_count']}\n\n"
-        f"Verdict timeline:\n{verdict_timeline_text}\n"
-        f"Scam evidence found:\n"
-        + "\n".join(f"  - {e}" for e in summary["scam_evidence"])
-        + "\n\nLegitimate indicators found:\n"
-        + "\n".join(f"  - {e}" for e in summary["legit_evidence"])
+        f"== CALL NOTES ==\n{notepad_text}\n"
+        f"Risk timeline:\n{timeline_text}\n"
+        f"Risk factors found:\n"
+        + "\n".join(f"  - {e}" for e in summary["risk_factors"])
+        + "\n\nSafe indicators found:\n"
+        + "\n".join(f"  - {e}" for e in summary["safe_indicators"])
         + "\n\nProduce the detailed post-call report as JSON."
     )
 
@@ -714,7 +860,10 @@ def run_post_call(
     raw_text = (response or {}).get("content", [{}])[0].get("text", "")
 
     import re
-    json_match = re.search(r"\{.*\}", raw_text, re.DOTALL)
+    # Strip markdown code fences if present.
+    cleaned = re.sub(r"```(?:json)?\s*", "", raw_text).strip().rstrip("`")
+    # Find the outermost JSON object.
+    json_match = re.search(r"\{.*\}", cleaned, re.DOTALL)
     if json_match:
         try:
             report = json.loads(json_match.group(0))
@@ -724,11 +873,16 @@ def run_post_call(
         except json.JSONDecodeError:
             pass
 
-    # Fallback: return raw text.
+    # Fallback: build a minimal report from the session data + raw text.
     return {
+        "final_risk_level": summary.get("final_risk_level", "MEDIUM_RISK"),
+        "risk_score": summary.get("final_risk_score", 0),
+        "call_summary": raw_text[:500] if raw_text else "Could not parse model response.",
+        "risk_factors": summary.get("risk_factors", []),
+        "safe_indicators": summary.get("safe_indicators", []),
         "raw": raw_text,
         "elapsed": round(elapsed, 2),
-        "parse_error": "Could not extract JSON from model response",
+        "parse_error": "Could not extract JSON — showing raw response.",
     }
 
 

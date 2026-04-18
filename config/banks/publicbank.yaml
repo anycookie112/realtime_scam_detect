@@ -1,0 +1,40 @@
+key: publicbank
+name: Public Bank
+aliases:
+  - public bank
+  - pbb
+  - pbe
+  - pb engage
+
+hotline: 1-800-22-5555
+fraud_line: 03-2177-3555
+
+official_numbers:
+  - number: 1-800-22-5555
+    desc: Main hotline (toll-free)
+  - number: 03-2177-3555
+    desc: General / fraud reporting
+  - number: 03-2177-3666
+    desc: Credit card centre
+  - number: 03-2177-3888
+    desc: Phone banking
+
+official_sms_senders:
+  - PBeMobile
+  - PublicBank
+  - PUBLICBANK
+
+app: PB engage
+auth: SecureSign via PB engage (not SMS TAC)
+online: PBe (pbebank.com)
+
+never: >
+  ask for TAC/OTP/password, ask to transfer to safe/holding account,
+  install remote access apps, call from personal mobile,
+  threaten arrest, conference to 'Bank Negara'/'PDRM',
+  ask to share SecureSign approval, send non-official download links
+
+legit: >
+  verify last 4 digits of account/card, ask basic security questions,
+  request branch visit with IC, send SMS from 'PBeMobile'/'PublicBank',
+  notify via PB engage app

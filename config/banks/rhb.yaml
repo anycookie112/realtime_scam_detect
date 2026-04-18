@@ -1,0 +1,33 @@
+key: rhb
+name: RHB Bank
+aliases:
+  - rhb
+  - rhb bank
+
+hotline: 03-9206-8118
+fraud_line: 03-9206-8118
+
+official_numbers:
+  - number: 03-9206-8118
+    desc: Main hotline
+  - number: 1-300-88-1808
+    desc: RHB Premier
+  - number: 03-9206-1160
+    desc: Credit card
+
+official_sms_senders:
+  - RHB
+  - RHBBank
+
+app: RHB Mobile Banking
+auth: DuitNow QR / Secure Plus
+online: RHB Online Banking (rhbgroup.com)
+
+never: >
+  ask for TAC/OTP/password, ask to transfer to safe account,
+  install remote access apps, call from personal mobile,
+  threaten arrest
+
+legit: >
+  verify partial account details, confirm identity,
+  request branch visit, send SMS from 'RHB' sender ID

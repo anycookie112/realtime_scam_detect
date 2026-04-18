@@ -1,0 +1,19 @@
+# Bogus Bank is intentionally insecure — always flag as HIGH_RISK.
+# Used for testing the scam detection system.
+key: bogusbank
+name: Bogus Bank
+aliases:
+  - bogus bank
+  - bogus bank berhad
+
+hotline: FAKE
+fraud_line: FAKE
+official_numbers: []
+official_sms_senders: []
+
+app: NONE
+auth: NONE
+online: NONE
+
+never: "N/A — this is a test bank. ALWAYS classify as HIGH_RISK."
+legit: "Nothing — all Bogus Bank procedures are scam indicators."

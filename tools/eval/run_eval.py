@@ -85,30 +85,45 @@ REPORTS_DIR = PROJECT_ROOT / "logs" / "eval"
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 sys.path.insert(0, str(PROJECT_ROOT / "agents"))
 
-LABELS = ("SCAM", "LEGITIMATE", "SUSPICIOUS")
+LABELS = ("HIGH_RISK", "SAFE", "MEDIUM_RISK", "LOW_RISK")
 
-# Same acceptance rule as the old WS eval: SUSPICIOUS clips credit either
-# SCAM (cautious flag) or UNCERTAIN (ask-to-verify).
+# Map legacy labels for backward compat in filenames.
+_LEGACY_MAP = {
+    "SCAM": "HIGH_RISK", "LEGITIMATE": "SAFE",
+    "SUSPICIOUS": "MEDIUM_RISK", "UNCERTAIN": "MEDIUM_RISK",
+}
+
+# Acceptance rules: which predictions count as correct for each expected label.
 ACCEPTABLE_PREDICTIONS: dict[str, frozenset[str]] = {
-    "SCAM":       frozenset({"SCAM"}),
-    "LEGITIMATE": frozenset({"LEGITIMATE"}),
-    "SUSPICIOUS": frozenset({"SCAM", "UNCERTAIN"}),
+    "HIGH_RISK":   frozenset({"HIGH_RISK", "SCAM"}),
+    "SAFE":        frozenset({"SAFE", "LOW_RISK", "LEGITIMATE"}),
+    "LOW_RISK":    frozenset({"SAFE", "LOW_RISK", "LEGITIMATE"}),
+    "MEDIUM_RISK": frozenset({"MEDIUM_RISK", "HIGH_RISK", "LOW_RISK",
+                              "SCAM", "UNCERTAIN"}),
+    # Legacy labels from old filenames
+    "SCAM":        frozenset({"HIGH_RISK", "SCAM"}),
+    "LEGITIMATE":  frozenset({"SAFE", "LOW_RISK", "LEGITIMATE"}),
+    "SUSPICIOUS":  frozenset({"MEDIUM_RISK", "HIGH_RISK", "LOW_RISK",
+                              "SCAM", "UNCERTAIN"}),
 }
 
 
 def is_correct(expected: str, predicted: str) -> bool:
+    # Normalize both to new labels.
+    expected = _LEGACY_MAP.get(expected, expected)
+    predicted = _LEGACY_MAP.get(predicted, predicted)
     return predicted in ACCEPTABLE_PREDICTIONS.get(expected, {expected})
 
 
 def label_from_filename(stem: str) -> str:
     s = stem.lower()
     if s.endswith("_legit") or "_legit_" in s:
-        return "LEGITIMATE"
+        return "SAFE"
     if s.endswith("_suspicious") or "_suspicious_" in s:
-        return "SUSPICIOUS"
+        return "MEDIUM_RISK"
     if "scam" in s or s.startswith("bogus_") or s.startswith("alias_test_"):
-        return "SCAM"
-    return "SUSPICIOUS"
+        return "HIGH_RISK"
+    return "MEDIUM_RISK"
 
 
 # ── Model matrix ─────────────────────────────────────────────────────────────

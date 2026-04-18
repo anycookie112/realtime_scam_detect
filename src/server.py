@@ -52,321 +52,103 @@ GPU_BACKEND = os.getenv("LITERT_ENGINE_BACKEND", "gpu").lower()
 # Compact prompt for on-device inference (8-10 tok/s, must be fast).
 
 SYSTEM_PROMPT = """\
-You are a scam detection assistant for Malaysia.
+You are a call safety assistant for Malaysia. You assess phone call risk \
+and help users verify if callers are legitimate.
 
 You MUST always use one of these tools to reply — never respond with plain text:
-
 1. analyze_speech — ALWAYS use this for AUDIO input.
 2. analyze_document — ALWAYS use this for IMAGE input.
 
-Verdicts: SCAM, LEGITIMATE, or UNCERTAIN.
-Always give 2-5 practical recommendations if the call is a Scam
-if the call is legitimate, say why and give recommendations if any action is needed and percautions to take.
-If uncertain, explain why and give recommendations for how to verify further.
+== RISK LEVELS ==
+- SAFE: routine call, no concerns.
+- LOW_RISK: normal call, worth verifying (promotions, surveys, reminders).
+- MEDIUM_RISK: some concerning elements, user should verify before sharing info.
+- HIGH_RISK: strong scam indicators, user should stop sharing info immediately.
 
-== AUDIO (phone calls) ==
-
-*** CLASSIFICATION RULES — follow STRICTLY in order ***
-
-FIRST check: Is this a routine bank call?
-Banks in Malaysia (Maybank, CIMB, Public Bank, RHB, etc.) make \
-outbound calls EVERY DAY for fraud monitoring and debt collection. \
-These are LEGITIMATE if the caller:
-- Asks "did you make this transaction?" (fraud alert)
-- Mentions specific transaction details (amount, merchant, last 4 digits)
-- Offers to block/freeze the card
-- Asks you to visit a branch with IC
-- Suggests calling the official hotline
-- Reminds about overdue payments, CTOS, legal action for debt
-- Verifies partial info (last 4 digits, partial IC)
-→ If the caller does ONLY these things → verdict = LEGITIMATE.
-
-Example of a LEGITIMATE call:
-"I'm calling from Maybank about a charge of RM2300 on your card \
-ending 4523. Was this you? If not, we'll block the card and you can \
-visit a branch with IC."
-→ This is LEGITIMATE — standard fraud alert. No credentials requested.
-
-THEN check for SCAM — only if the caller ALSO does any of these:
-- Asks for passwords, PINs, OTPs, TAC, full IC, full card number
+== HIGH RISK triggers (any ONE = HIGH_RISK) ==
+- Asks for FULL IC number, passwords, PINs, OTPs, TAC, full card number
+- Asks to download/install any app (TeamViewer, AnyDesk, APK links)
 - Asks to transfer money to a "safe account" or personal account
-- Asks to install TeamViewer/AnyDesk or download an APK
 - Claims to be police/LHDN/Bank Negara and threatens arrest/warrant
-- Tells you to keep the call secret
-- Promises guaranteed returns, lottery winnings
-→ If ANY of these → verdict = SCAM.
+- Says "don't tell anyone about this call"
+- Promises guaranteed returns, lottery winnings, crypto profits
 
-UNCERTAIN: aggressive sales, unverifiable charity requests, \
-ambiguous situations that don't clearly fit SCAM or LEGITIMATE.
+== MEDIUM RISK triggers ==
+- Asks for payment before delivery (COD scam pattern)
+- Strong urgency pressure ("offer expires in 1 hour", "act now or lose it")
+- Asks for information beyond last-4-digit verification
+- Caller refuses to give staff ID or callback number when asked
+- Insists you stay on the line and not call anyone else
+
+== NORMAL — NOT risk indicators ==
+- Asking for last 4 digits of IC, account, or card — this is standard verification
+- Asking for your name to confirm identity
+- Reminding about overdue payments with specific amounts
+- Offering promotions with opt-out option
+- Asking you to visit a branch or call the official hotline
+- Verifying a specific transaction you may have made
+- Payment reminders and collection calls
 
 KEY PRINCIPLE: An unsolicited bank call is NOT a scam by itself. \
-The dividing line is whether they ask for credentials or money.
+Banks call every day for fraud alerts, promotions, and debt collection. \
+Not all calls are impersonation. Judge by WHAT they ask for, not that they called.
 
-== IMAGES (documents, screenshots, messages) ==
-SCAM: fake letterheads, wrong logos/fonts/grammar, payment to personal \
-accounts, urgency language, non-official domains, WhatsApp bank msgs.
+== RECOMMENDATIONS STYLE ==
+Do NOT just say "hang up" for MEDIUM_RISK calls. Instead, give \
+verification prompts — specific things the user should SAY or ASK:
+- "Ask the caller for their staff ID and department"
+- "Ask for a reference number to call back on the official hotline"
+- "Say: 'I'll call [bank] directly to verify. What's the reference number?'"
+- "Do not provide your full IC — only confirm the last 4 digits if asked"
+- "If they refuse to let you hang up and call back, that is a red flag"
 
-LEGITIMATE: official letterhead, correct formatting, directing to \
-official branches/hotlines, reference to real account numbers.
+For HIGH_RISK: clearly state "Stop sharing information" and recommend \
+hanging up and calling the official hotline.
 
-Recommendation examples:
-- Hang up / ignore the message
-- Call the official hotline of [company] to verify
-- Do NOT share any OTP, PIN, or password
-- Report to NSRC (997) or Bank Negara
-- No action needed — appears routine
+For SAFE/LOW_RISK: brief confirmation advice or "No action needed."
+
+== IMAGES ==
+Assess documents/screenshots for risk: fake letterheads, payment to \
+personal accounts, urgency language, non-official domains = HIGH_RISK.
+Official formatting, directing to branches/hotlines = SAFE.
 """
 
 # Compact prompt for on-device / low-tok/s inference.
-# Targets ~50-80 output tokens vs ~200+ from the full prompt.
 SYSTEM_PROMPT_COMPACT = """\
-Scam detection assistant for Malaysia. Use analyze_speech tool to reply.
+Call safety assistant for Malaysia. Use analyze_speech tool to reply.
 
-Rules:
-LEGITIMATE: caller verifies transaction, offers to block card, asks to visit branch.
-SCAM: asks for OTP/PIN/password/TAC, transfer to "safe account", install remote app, threatens arrest, says keep secret.
-UNCERTAIN: unclear.
+Risk levels: SAFE, LOW_RISK, MEDIUM_RISK, HIGH_RISK.
+HIGH_RISK: asks for full IC/OTP/PIN/TAC/password, transfer to "safe account", \
+install app, threatens arrest, says keep secret.
+MEDIUM_RISK: urgency pressure, asks beyond last-4-digit verification.
+SAFE/LOW_RISK: verifies transaction, last 4 digits, payment reminder, promotion.
+Normal: last 4 IC digits, name verification, branch visit.
 
-Keep summary under 20 words. Give 1-2 short recommendations max.
+Give verification prompts: what to ask/say to confirm caller is real.
+Keep summary under 20 words. 1-2 recommendations max.
 """
 
-# ── Compact Bank Knowledge Base ──────────────────────────────────────────────
-# Queried per-turn when a bank name is detected in the audio/history.
-# Kept short (~150 tokens each) to fit within E2B's 4096 context.
 
-BANK_KB: dict[str, dict] = {
-    "maybank": {
-        "aliases": ["maybank", "malayan banking", "mbb", "maybank2u", "mae"],
-        "hotline": "1-300-88-6688",
-        "fraud_line": "03-5891-4744",
-        "official_numbers": [
-            "1-300-88-6688",       # Main hotline
-            "03-7844-3696",        # International
-            "03-5891-4744",        # 24h fraud reporting
-            "03-2297-2697",        # Credit card services
-            "1-300-88-1868",       # MAE support
-            "03-2074-7228",        # Premier Wealth
-        ],
-        "official_sms_senders": ["MAE", "Maybank", "MAYBANK"],
-        "app": "MAE by Maybank",
-        "auth": "Secure2u (not SMS TAC)",
-        "online": "Maybank2u (maybank2u.com.my)",
-        "never": (
-            "ask for TAC/OTP/password, ask to transfer to safe account, "
-            "install TeamViewer/AnyDesk, call from personal mobile, "
-            "threaten arrest, ask to keep call secret, "
-            "ask to share Secure2u code, send APK links"
-        ),
-        "legit": (
-            "verify last 4 digits of card, confirm partial IC, "
-            "ask security questions, request branch visit, "
-            "send SMS from 'MAE'/'Maybank' sender ID, "
-            "suggest using Kill Switch feature"
-        ),
-    },
-    "publicbank": {
-        "aliases": ["public bank", "pbb", "pbe", "pb engage"],
-        "hotline": "1-800-22-5555",
-        "fraud_line": "03-2177-3555",
-        "official_numbers": [
-            "1-800-22-5555",       # Main hotline (toll-free)
-            "03-2177-3555",        # General / fraud reporting
-            "03-2177-3666",        # Credit card centre
-            "03-2177-3888",        # Phone banking
-        ],
-        "official_sms_senders": ["PBeMobile", "PublicBank", "PUBLICBANK"],
-        "app": "PB engage",
-        "auth": "SecureSign via PB engage (not SMS TAC)",
-        "online": "PBe (pbebank.com)",
-        "never": (
-            "ask for TAC/OTP/password, ask to transfer to safe/holding account, "
-            "install remote access apps, call from personal mobile, "
-            "threaten arrest, conference to 'Bank Negara'/'PDRM', "
-            "ask to share SecureSign approval, send non-official download links"
-        ),
-        "legit": (
-            "verify last 4 digits of account/card, ask basic security questions, "
-            "request branch visit with IC, send SMS from 'PBeMobile'/'PublicBank', "
-            "notify via PB engage app"
-        ),
-    },
-    "cimb": {
-        "aliases": ["cimb", "cimb bank", "cimb clicks"],
-        "hotline": "03-6204-7788",
-        "fraud_line": "03-6204-7788",
-        "official_numbers": [
-            "03-6204-7788",        # Main hotline
-            "1-300-880-900",       # CIMB Preferred
-            "03-2295-6100",        # Credit card
-        ],
-        "official_sms_senders": ["CIMB", "CIMBClicks"],
-        "app": "CIMB OCTO",
-        "auth": "SecureTAC via CIMB OCTO app",
-        "online": "CIMB Clicks (cimbclicks.com.my)",
-        "never": (
-            "ask for TAC/OTP/password, ask to transfer to safe account, "
-            "install remote access apps, call from personal mobile, "
-            "threaten arrest, ask to keep call secret"
-        ),
-        "legit": (
-            "verify last 4 digits of card, confirm partial IC, "
-            "request branch visit, send SMS from 'CIMB' sender ID"
-        ),
-    },
-    "rhb": {
-        "aliases": ["rhb", "rhb bank"],
-        "hotline": "03-9206-8118",
-        "fraud_line": "03-9206-8118",
-        "official_numbers": [
-            "03-9206-8118",        # Main hotline
-            "1-300-88-1808",       # RHB Premier
-            "03-9206-1160",        # Credit card
-        ],
-        "official_sms_senders": ["RHB", "RHBBank"],
-        "app": "RHB Mobile Banking",
-        "auth": "DuitNow QR / Secure Plus",
-        "online": "RHB Online Banking (rhbgroup.com)",
-        "never": (
-            "ask for TAC/OTP/password, ask to transfer to safe account, "
-            "install remote access apps, call from personal mobile, "
-            "threaten arrest"
-        ),
-        "legit": (
-            "verify partial account details, confirm identity, "
-            "request branch visit, send SMS from 'RHB' sender ID"
-        ),
-    },
-    "hongleong": {
-        "aliases": ["hong leong", "hong leong bank", "hlb", "hlb connect"],
-        "hotline": "03-7626-8899",
-        "fraud_line": "03-7626-8899",
-        "official_numbers": [
-            "03-7626-8899",        # Main hotline
-            "1-300-88-1818",       # HLB Connect
-        ],
-        "official_sms_senders": ["HLB", "HongLeong"],
-        "app": "HLB Connect",
-        "auth": "S-Sign via HLB Connect",
-        "online": "HLB Connect (hlb.com.my)",
-        "never": (
-            "ask for TAC/OTP/password, ask to transfer to safe account, "
-            "install remote access apps, call from personal mobile, "
-            "threaten arrest"
-        ),
-        "legit": (
-            "verify partial account details, confirm identity, "
-            "request branch visit, send SMS from 'HLB' sender ID"
-        ),
-    },
-    "ambank": {
-        "aliases": ["ambank", "am bank", "ambank group"],
-        "hotline": "03-2178-8888",
-        "fraud_line": "03-2178-8888",
-        "official_numbers": [
-            "03-2178-8888",        # Main hotline
-            "1-300-88-8188",       # AmBank call centre
-        ],
-        "official_sms_senders": ["AmBank", "AMBANK"],
-        "app": "AmOnline",
-        "auth": "Secure2u via AmOnline",
-        "online": "AmOnline (ambank.com.my)",
-        "never": (
-            "ask for TAC/OTP/password, ask to transfer to safe account, "
-            "install remote access apps, call from personal mobile, "
-            "threaten arrest"
-        ),
-        "legit": (
-            "verify partial account details, confirm identity, "
-            "request branch visit, send SMS from 'AmBank' sender ID"
-        ),
-    },
-    "bankislam": {
-        "aliases": ["bank islam", "bankislam"],
-        "hotline": "03-2609-0900",
-        "fraud_line": "03-2609-0900",
-        "official_numbers": [
-            "03-2609-0900",        # Main hotline
-            "1-300-88-4424",       # Contact centre
-        ],
-        "official_sms_senders": ["BankIslam", "BIMB"],
-        "app": "GO by Bank Islam",
-        "auth": "i-Secure via GO app",
-        "online": "Bank Islam (bankislam.com.my)",
-        "never": (
-            "ask for TAC/OTP/password, ask to transfer to safe account, "
-            "install remote access apps, call from personal mobile, "
-            "threaten arrest"
-        ),
-        "legit": (
-            "verify partial account details, confirm identity, "
-            "request branch visit, send SMS from 'BankIslam' sender ID"
-        ),
-    },
-    "bsn": {
-        "aliases": ["bsn", "bank simpanan nasional"],
-        "hotline": "1-300-88-1900",
-        "fraud_line": "1-300-88-1900",
-        "official_numbers": [
-            "1-300-88-1900",       # Main hotline
-            "03-2613-1900",        # KL line
-        ],
-        "official_sms_senders": ["BSN", "myBSN"],
-        "app": "myBSN",
-        "auth": "Secure Verification via myBSN",
-        "online": "myBSN (mybsn.com.my)",
-        "never": (
-            "ask for TAC/OTP/password, ask to transfer to safe account, "
-            "install remote access apps, call from personal mobile, "
-            "threaten arrest"
-        ),
-        "legit": (
-            "verify partial account details, confirm identity, "
-            "request branch visit"
-        ),
-    },
-}
+# ── Bank Knowledge Base ─────────────────────────────────────────────────────
+# Loaded from config/banks/*.yaml. One file per bank — easy to add/edit without
+# touching code. See src/bank_kb.py for the loader + detection functions.
 
-# Bogus Bank is intentionally insecure — always flag as SCAM
-BANK_KB["bogusbank"] = {
-    "aliases": ["bogus bank", "bogus bank berhad", "bb"],
-    "hotline": "FAKE",
-    "fraud_line": "FAKE",
-    "official_numbers": [],
-    "official_sms_senders": [],
-    "app": "NONE",
-    "auth": "NONE",
-    "online": "NONE",
-    "never": "N/A — this is a test bank. ALWAYS classify as SCAM.",
-    "legit": "Nothing — all Bogus Bank procedures are scam indicators.",
-}
+from bank_config import load_banks, detect_bank as _detect_bank_impl, bank_context as _bank_context_impl
+
+BANK_KB: dict[str, dict] = load_banks()
+if not BANK_KB:
+    print("!! No bank YAMLs found in config/banks/ — bank KB injection disabled")
 
 
 def _detect_bank(text: str) -> str | None:
-    """Return bank key if any bank is mentioned in text, else None."""
-    lower = text.lower()
-    for bank_key, info in BANK_KB.items():
-        for alias in info["aliases"]:
-            if alias in lower:
-                return bank_key
-    return None
+    """Return bank key if any bank alias is mentioned in text, else None."""
+    return _detect_bank_impl(text, BANK_KB)
 
 
 def _bank_context(bank_key: str) -> str:
-    """Return compact bank-specific context string.
+    """Return compact bank-specific context string for prompt injection."""
+    return _bank_context_impl(bank_key, BANK_KB)
 
-    Uses .get() throughout so a partial KB entry (e.g. the test BOGUS bank,
-    or a future incomplete addition) can never crash inference.
-    """
-    b = BANK_KB[bank_key]
-    return (
-        f"== Bank detected: {bank_key.upper()} ==\n"
-        f"Hotline: {b.get('hotline', 'N/A')} | Fraud: {b.get('fraud_line', 'N/A')}\n"
-        f"App: {b.get('app', 'N/A')} | Auth: {b.get('auth', 'N/A')} | Online: {b.get('online', 'N/A')}\n"
-        f"NEVER does: {b.get('never', 'N/A')}\n"
-        f"May legitimately do: {b.get('legit', 'N/A')}\n"
-        f"Use these facts to improve your verdict accuracy. "
-        f"Recommend calling {b.get('hotline', 'the official hotline')} if suspicious."
-    )
 
 # ── Lenient output parsing ───────────────────────────────────────────────────
 # Quantized E2B frequently fails to call a tool and instead emits free-form
@@ -374,9 +156,9 @@ def _bank_context(bank_key: str) -> str:
 # UNCERTAIN, try to recover the verdict + recommendations from whatever the
 # model actually produced. Anything we can't recover stays UNCERTAIN.
 
-_VERDICT_RE = re.compile(r"\b(SCAM|LEGITIMATE|UNCERTAIN|SUSPICIOUS)\b", re.IGNORECASE)
+_VERDICT_RE = re.compile(r"\b(SAFE|LOW_RISK|MEDIUM_RISK|HIGH_RISK|SCAM|LEGITIMATE|UNCERTAIN|SUSPICIOUS)\b", re.IGNORECASE)
 _VERDICT_FIELD_RE = re.compile(
-    r'"?verdict"?\s*[:=]\s*"?(SCAM|LEGITIMATE|UNCERTAIN|SUSPICIOUS)"?',
+    r'"?(?:verdict|risk_level)"?\s*[:=]\s*"?(SAFE|LOW_RISK|MEDIUM_RISK|HIGH_RISK|SCAM|LEGITIMATE|UNCERTAIN|SUSPICIOUS)"?',
     re.IGNORECASE,
 )
 _JSON_OBJECT_RE = re.compile(r"\{.*\}", re.DOTALL)
@@ -390,8 +172,10 @@ def _lenient_parse(raw: str) -> dict:
       2. Failing that, regex-extract a verdict keyword.
       3. Pull bullet/numbered lines as recommendations.
     """
+    _VALID_LEVELS = {"SAFE", "LOW_RISK", "MEDIUM_RISK", "HIGH_RISK",
+                     "SCAM", "LEGITIMATE", "UNCERTAIN", "SUSPICIOUS"}
     out = {
-        "verdict": "UNCERTAIN",
+        "verdict": "MEDIUM_RISK",
         "summary": "",
         "recommendations": [],
         "transcription": "",
@@ -405,8 +189,8 @@ def _lenient_parse(raw: str) -> dict:
         try:
             obj = json.loads(m.group(0))
             if isinstance(obj, dict):
-                v = str(obj.get("verdict", "")).upper()
-                if v in ("SCAM", "LEGITIMATE", "UNCERTAIN", "SUSPICIOUS"):
+                v = str(obj.get("risk_level", "") or obj.get("verdict", "")).upper()
+                if v in _VALID_LEVELS:
                     out["verdict"] = v
                 if isinstance(obj.get("summary"), str):
                     out["summary"] = obj["summary"]
@@ -732,15 +516,27 @@ async def stream_sim_endpoint(ws: WebSocket):
                 "total_chunks": len(chunks),
                 "time_start": round(chunk_start, 1),
                 "time_end": round(chunk_end, 1),
-                "verdict": result.get("verdict", "UNCERTAIN"),
-                "call_verdict": session.current_verdict,
+                "verdict": result.get("verdict", "SAFE"),
+                "risk_level": result.get("risk_level", result.get("verdict", "SAFE")),
+                "risk_score": result.get("risk_score", 0),
+                "call_verdict": session.current_risk_level,
+                "call_risk_level": session.current_risk_level,
+                "call_risk_score": session.current_risk_score,
                 "transcription": result.get("transcription", ""),
                 "summary": result.get("summary", ""),
                 "recommendations": result.get("recommendations", []),
+                "caller_claims": result.get("caller_claims", ""),
+                "info_requested": result.get("info_requested", ""),
                 "asr_time": round(result.get("asr_time", 0), 2),
                 "llm_time": round(result.get("llm_time", 0), 2),
                 "detected_bank": result.get("detected_bank"),
                 "running_transcript": session.running_transcript,
+                "notepad": {
+                    "caller_identity": session.caller_identity,
+                    "info_requested": list(session.info_requested),
+                    "call_reason": session.call_reason,
+                    "risk_factors": list(session.risk_factors),
+                },
             }))
 
         # Post-call analysis
@@ -892,6 +688,8 @@ async def websocket_endpoint(ws: WebSocket):
                 "transcription": transcription,
                 "description": description,
                 "verdict": verdict,
+                "risk_level": result.get("risk_level", verdict),
+                "risk_score": result.get("risk_score", 0),
                 "summary": summary,
                 "recommendations": recommendations,
                 "asr_time": round(asr_time, 2),
@@ -899,9 +697,17 @@ async def websocket_endpoint(ws: WebSocket):
                 "total_time": round(total_time, 2),
             }
             if mode == "live":
-                response_msg["call_verdict"] = session.current_verdict
+                response_msg["call_verdict"] = session.current_risk_level
+                response_msg["call_risk_level"] = session.current_risk_level
+                response_msg["call_risk_score"] = session.current_risk_score
                 response_msg["segment_verdict"] = verdict
                 response_msg["running_transcript"] = session.running_transcript
+                response_msg["notepad"] = {
+                    "caller_identity": session.caller_identity,
+                    "info_requested": list(session.info_requested),
+                    "call_reason": session.call_reason,
+                    "risk_factors": list(session.risk_factors),
+                }
 
             await ws.send_text(json.dumps(response_msg))
 

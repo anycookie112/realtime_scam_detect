@@ -1,0 +1,31 @@
+key: bankislam
+name: Bank Islam
+aliases:
+  - bank islam
+  - bankislam
+
+hotline: 03-2609-0900
+fraud_line: 03-2609-0900
+
+official_numbers:
+  - number: 03-2609-0900
+    desc: Main hotline
+  - number: 1-300-88-4424
+    desc: Contact centre
+
+official_sms_senders:
+  - BankIslam
+  - BIMB
+
+app: GO by Bank Islam
+auth: i-Secure via GO app
+online: Bank Islam (bankislam.com.my)
+
+never: >
+  ask for TAC/OTP/password, ask to transfer to safe account,
+  install remote access apps, call from personal mobile,
+  threaten arrest
+
+legit: >
+  verify partial account details, confirm identity,
+  request branch visit, send SMS from 'BankIslam' sender ID

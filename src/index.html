@@ -27,19 +27,41 @@
   .source-toggle .sopt:hover { color: var(--text); }
   .source-toggle .sopt.active { background: var(--cyan); color: #000; }
 
-  /* Big verdict */
-  .big-verdict { text-align: center; padding: 16px 20px 10px; flex-shrink: 0; transition: background 0.5s, color 0.3s; }
-  .big-verdict .icon { font-size: 36px; margin-bottom: 2px; }
-  .big-verdict .label { font-size: 24px; font-weight: 800; letter-spacing: 2px; }
+  /* Big verdict — risk levels */
+  .big-verdict { text-align: center; padding: 14px 20px 8px; flex-shrink: 0; transition: background 0.5s, color 0.3s; }
+  .big-verdict .icon { font-size: 32px; margin-bottom: 2px; }
+  .big-verdict .label { font-size: 22px; font-weight: 800; letter-spacing: 1px; }
   .big-verdict .sub { font-size: 11px; margin-top: 3px; opacity: 0.8; }
-  .big-verdict.SCAM { background: linear-gradient(180deg, rgba(239,68,68,0.18) 0%, transparent 100%); color: var(--red); }
-  .big-verdict.LEGITIMATE { background: linear-gradient(180deg, rgba(34,197,94,0.14) 0%, transparent 100%); color: var(--green); }
-  .big-verdict.UNCERTAIN { background: linear-gradient(180deg, rgba(234,179,8,0.12) 0%, transparent 100%); color: var(--yellow); }
+  .big-verdict.SAFE { background: linear-gradient(180deg, rgba(34,197,94,0.14) 0%, transparent 100%); color: var(--green); }
+  .big-verdict.LOW_RISK { background: linear-gradient(180deg, rgba(56,189,248,0.12) 0%, transparent 100%); color: var(--cyan); }
+  .big-verdict.MEDIUM_RISK { background: linear-gradient(180deg, rgba(234,179,8,0.14) 0%, transparent 100%); color: var(--yellow); }
+  .big-verdict.HIGH_RISK { background: linear-gradient(180deg, rgba(239,68,68,0.18) 0%, transparent 100%); color: var(--red); }
   .big-verdict.idle { background: var(--surface); color: var(--dim); }
-  .big-verdict.SCAM .icon::after { content: '🚨'; } .big-verdict.LEGITIMATE .icon::after { content: '✅'; }
-  .big-verdict.UNCERTAIN .icon::after { content: '⚡'; } .big-verdict.idle .icon::after { content: '🔇'; }
+  .big-verdict.SAFE .icon::after { content: '✅'; }
+  .big-verdict.LOW_RISK .icon::after { content: '🔵'; }
+  .big-verdict.MEDIUM_RISK .icon::after { content: '⚠️'; }
+  .big-verdict.HIGH_RISK .icon::after { content: '🚨'; }
+  .big-verdict.idle .icon::after { content: '🔇'; }
   .big-verdict.pulse { animation: pulse 0.5s ease; }
   @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  /* Risk score bar */
+  .risk-bar { height: 20px; margin: 0 20px; border-radius: 4px; background: var(--surface); flex-shrink: 0; overflow: hidden; position: relative; display: flex; align-items: center; }
+  .risk-bar .risk-fill { position: absolute; left: 0; top: 0; height: 100%; border-radius: 4px; transition: width 0.5s, background 0.5s; opacity: 0.3; }
+  .risk-bar .risk-label { position: relative; z-index: 1; width: 100%; text-align: center; font-size: 9px; font-weight: 700; color: var(--dim); letter-spacing: 1px; }
+  .risk-bar .risk-score-num { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 10px; font-weight: 700; z-index: 1; }
+
+  /* Notepad panel in sidebar */
+  .notepad { padding: 8px 10px; border-top: 1px solid rgba(255,255,255,0.04); font-size: 10px; }
+  .notepad .np-title { font-weight: 700; color: var(--dim); text-transform: uppercase; margin-bottom: 4px; }
+  .notepad .np-row { color: var(--text); margin-bottom: 3px; line-height: 1.3; }
+  .notepad .np-label { color: var(--dim); }
+
+  /* Verification prompts box */
+  .verify-box { padding: 10px 14px; background: rgba(56,189,248,0.06); border: 1px solid rgba(56,189,248,0.15); border-radius: 8px; flex-shrink: 0; }
+  .verify-box .vb-title { font-size: 10px; font-weight: 700; color: var(--cyan); text-transform: uppercase; margin-bottom: 5px; }
+  .verify-box .vb-item { font-size: 12px; color: var(--text); padding: 2px 0 2px 14px; position: relative; line-height: 1.3; }
+  .verify-box .vb-item::before { content: '💬'; position: absolute; left: 0; font-size: 10px; }
 
   /* Audio meter */
   .audio-meter { height: 28px; background: var(--surface); overflow: hidden; flex-shrink: 0; position: relative; display: none; }
@@ -116,6 +138,11 @@
 
   /* Badges */
   .v { display: inline-block; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 4px; vertical-align: middle; }
+  .v-SAFE { background: var(--green-bg); color: var(--green); }
+  .v-LOW_RISK { background: rgba(56,189,248,0.1); color: var(--cyan); }
+  .v-MEDIUM_RISK { background: var(--yellow-bg); color: var(--yellow); }
+  .v-HIGH_RISK { background: var(--red-bg); color: var(--red); }
+  /* Legacy compat */
   .v-SCAM { background: var(--red-bg); color: var(--red); } .v-LEGITIMATE { background: var(--green-bg); color: var(--green); }
   .v-UNCERTAIN { background: var(--yellow-bg); color: var(--yellow); }
 
@@ -217,11 +244,19 @@
 </header>
 
 <div class="big-verdict idle" id="bigV"><div class="icon"></div><div class="label">IDLE</div><div class="sub">Choose a source and start</div></div>
+<div class="risk-bar" id="riskBar"><div class="risk-fill" id="riskFill" style="width:0%"></div><span class="risk-label">RISK</span><span class="risk-score-num" id="riskNum" style="color:var(--dim)">0</span></div>
 <div class="audio-meter" id="audioMeter"><canvas id="meterCanvas"></canvas><span class="meter-label">MIC</span></div>
 <div class="progress-bar"><div class="fill" id="progFill" style="width:0%"></div></div>
 
 <div class="layout">
   <div class="sidebar" id="sidebar">
+    <div class="notepad" id="notepadPanel">
+      <div class="np-title">Call Notes</div>
+      <div class="np-row" id="npCaller"><span class="np-label">Caller:</span> —</div>
+      <div class="np-row" id="npReason"><span class="np-label">Reason:</span> —</div>
+      <div class="np-row" id="npInfo"><span class="np-label">Info asked:</span> —</div>
+      <div class="np-row" id="npRisks"><span class="np-label">Risks:</span> —</div>
+    </div>
     <div class="sidebar-header">History</div>
     <div class="sidebar-list" id="histList"></div>
   </div>
@@ -277,14 +312,35 @@ function md(s) {
 }
 const fmt = s => `${String(Math.floor(s/60)).padStart(2,'0')}:${String(Math.floor(s%60)).padStart(2,'0')}`;
 function vBadge(v) { return `<span class="v v-${v}">${v}</span>`; }
+const RISK_LABELS = {SAFE:'SAFE',LOW_RISK:'LOW RISK',MEDIUM_RISK:'MEDIUM RISK',HIGH_RISK:'HIGH RISK'};
+
 function setV(v, sub) {
   const el = $('bigV');
   const changed = el.dataset.v !== v;
   el.dataset.v = v;
   el.className = 'big-verdict ' + (v||'idle');
-  el.querySelector('.label').textContent = v || 'IDLE';
+  el.querySelector('.label').textContent = RISK_LABELS[v] || v || 'IDLE';
   if (sub) el.querySelector('.sub').textContent = sub;
   if (changed && v) { el.classList.add('pulse'); setTimeout(() => el.classList.remove('pulse'), 500); }
+}
+
+function setRiskBar(score) {
+  score = Math.min(100, Math.max(0, score));
+  const fill = $('riskFill');
+  fill.style.width = score + '%';
+  const c = score > 70 ? 'var(--red)' : score > 40 ? 'var(--yellow)' : score > 15 ? 'var(--cyan)' : 'var(--green)';
+  fill.style.background = c;
+  $('riskNum').textContent = score;
+  $('riskNum').style.color = c;
+}
+
+function updateNotepad(np) {
+  if (!np) return;
+  $('npCaller').innerHTML = `<span class="np-label">Caller:</span> ${esc(np.caller_identity || '—')}`;
+  $('npReason').innerHTML = `<span class="np-label">Reason:</span> ${esc(np.call_reason || '—')}`;
+  $('npInfo').innerHTML = `<span class="np-label">Info asked:</span> ${esc((np.info_requested || []).join(', ') || '—')}`;
+  const risks = np.risk_factors || [];
+  $('npRisks').innerHTML = `<span class="np-label">Risks:</span> ${risks.length ? esc(risks.join(', ')) : '<span style="color:var(--green)">none</span>'}`;
 }
 
 // ══════ Source toggle ══════
@@ -318,7 +374,12 @@ function resetState() {
   chunkData = []; reportData = null; chunkCounter = 0;
   $('histList').innerHTML = '';
   $('progFill').style.width = '0%';
+  $('riskFill').style.width = '0%';
   $('reportModal').style.display = 'none'; $('reportModal').innerHTML = '';
+  $('npCaller').innerHTML = '<span class="np-label">Caller:</span> —';
+  $('npReason').innerHTML = '<span class="np-label">Reason:</span> —';
+  $('npInfo').innerHTML = '<span class="np-label">Info asked:</span> —';
+  $('npRisks').innerHTML = '<span class="np-label">Risks:</span> —';
   removeFab();
 }
 
@@ -326,24 +387,43 @@ function showChunkInMain(idx) {
   const d = chunkData[idx]; if (!d) return;
   document.querySelectorAll('.hist-item').forEach((el, i) => el.classList.toggle('active', i === idx));
   const area = $('curAnalysis');
-  let recs = '';
-  if (d.recommendations?.length) recs = `<ul class="recs-list">${d.recommendations.map(r=>`<li>${md(r)}</li>`).join('')}</ul>`;
+  const rl = d.risk_level || d.verdict;
+  const crl = d.call_risk_level || d.call_verdict;
+
+  // Verification prompts — filter recs that look like questions/prompts
+  let verifyHtml = '', otherRecs = '';
+  const verifyItems = [], otherItems = [];
+  (d.recommendations || []).forEach(r => {
+    if (/^(ask|say|do not|if they|verify|call the|check)/i.test(r.trim())) verifyItems.push(r);
+    else otherItems.push(r);
+  });
+  if (verifyItems.length) {
+    verifyHtml = `<div class="verify-box"><div class="vb-title">What to Say / Ask</div>${verifyItems.map(r=>`<div class="vb-item">${md(r)}</div>`).join('')}</div>`;
+  }
+  if (otherItems.length) {
+    otherRecs = `<ul class="recs-list">${otherItems.map(r=>`<li>${md(r)}</li>`).join('')}</ul>`;
+  }
+
   const srcLabel = d._source === 'mic' ? 'Live' : `Chunk ${d.chunk}/${d.total_chunks} [${fmt(d.time_start)}-${fmt(d.time_end)}]`;
   area.classList.remove('fade-in');
   area.innerHTML = `
     <div class="stage-label">${esc(srcLabel)}</div>
     <div class="heard-text"><span class="mic">🎙 Heard:</span><br>"${esc(d.transcription || '(no transcript)')}"</div>
+    ${verifyHtml}
     <div class="result-box">
-      <div class="verdict-row">${vBadge(d.verdict)} ${vBadge(d.call_verdict)} <span style="font-size:10px;color:var(--dim);">segment / call</span></div>
+      <div class="verdict-row">${vBadge(rl)} ${vBadge(crl)} <span style="font-size:10px;color:var(--dim);">segment / call</span>${d.risk_score ? ` <span style="font-size:10px;color:var(--dim);">· risk ${d.risk_score}/100</span>` : ''}</div>
       <div class="summary-text">${md(d.summary||'')}</div>
-      ${recs}
+      ${otherRecs}
       <div class="meta">ASR ${d.asr_time||0}s / LLM ${d.llm_time||0}s${d.detected_bank ? ' / Bank: '+d.detected_bank.toUpperCase() : ''}</div>
     </div>
     ${d.running_transcript ? `<div class="transcript-area"><div class="tx-label">Full Transcript</div>${esc(d.running_transcript)}</div>` : ''}
   `;
-  // Trigger fade-in
-  void area.offsetWidth; // force reflow
+  void area.offsetWidth;
   area.classList.add('fade-in');
+
+  // Update risk bar and notepad
+  setRiskBar(d.call_risk_score || d.risk_score || 0);
+  if (d.notepad) updateNotepad(d.notepad);
 }
 
 function addHistItem(d, isFlip) {
@@ -386,14 +466,21 @@ function removeFab() { const f=$('reportFab'); if(f) f.remove(); }
 function renderReport(r) {
   if (r.error) return `<h3>Post-Call Report</h3><p style="color:var(--red)">${esc(r.error)}</p>`;
   let h = '<h3>Post-Call Analysis</h3>';
-  if (r.final_verdict) h += `<div class="kv"><span class="k">Verdict</span><span class="val">${vBadge(r.final_verdict)}</span></div>`;
+  const rl = r.final_risk_level || r.final_verdict;
+  if (rl) h += `<div class="kv"><span class="k">Risk Level</span><span class="val">${vBadge(rl)}</span></div>`;
   if (r.confidence) h += `<div class="kv"><span class="k">Confidence</span><span class="val">${esc(r.confidence)}</span></div>`;
   if (r.risk_score!=null) { const c=r.risk_score>70?'var(--red)':r.risk_score>30?'var(--yellow)':'var(--green)'; h+=`<div class="kv"><span class="k">Risk Score</span><span class="val" style="color:${c};font-weight:700;">${r.risk_score}/100</span></div>`; }
   if (r.call_summary) h += `<div class="kv"><span class="k">Summary</span><span class="val">${md(r.call_summary)}</span></div>`;
+  if (r.caller_identity) h += `<div class="kv"><span class="k">Caller</span><span class="val">${esc(r.caller_identity)}</span></div>`;
+  if (r.info_requested?.length) h += `<div class="kv"><span class="k">Info Asked</span><span class="val">${esc(r.info_requested.join(', '))}</span></div>`;
+  if (r.risk_factors?.length) { h+=`<div style="margin-top:8px;font-size:12px;font-weight:600;color:var(--red)">Risk Factors</div><ul>`; r.risk_factors.forEach(f=>h+=`<li style="color:var(--red)">${md(f)}</li>`); h+='</ul>'; }
   if (r.red_flags?.length) { h+=`<div style="margin-top:8px;font-size:12px;font-weight:600;color:var(--red)">Red Flags</div><ul>`; r.red_flags.forEach(f=>h+=`<li style="color:var(--red)">${md(f)}</li>`); h+='</ul>'; }
+  if (r.safe_indicators?.length) { h+=`<div style="margin-top:8px;font-size:12px;font-weight:600;color:var(--green)">Safe Indicators</div><ul>`; r.safe_indicators.forEach(f=>h+=`<li style="color:var(--green)">${md(f)}</li>`); h+='</ul>'; }
+  if (r.verification_questions?.length) { h+=`<div style="margin-top:8px;font-size:12px;font-weight:600;color:var(--cyan)">Verification Questions</div><ul>`; r.verification_questions.forEach(q=>h+=`<li>${md(q)}</li>`); h+='</ul>'; }
   if (r.recommended_actions?.length) { h+=`<div style="margin-top:8px;font-size:12px;font-weight:600;color:var(--bright)">Actions</div><ul>`; r.recommended_actions.forEach(a=>h+=`<li>${md(a)}</li>`); h+='</ul>'; }
   if (r.timeline?.length) { h+=`<div style="margin-top:8px;font-size:12px;font-weight:600;color:var(--bright)">Timeline</div><ul>`; r.timeline.forEach(t=>h+=`<li><span style="color:var(--dim)">[${esc(t.time||'')}]</span> ${md(t.event||'')}</li>`); h+='</ul>'; }
   if (r.report_for_authorities) h+=`<div class="auth-box"><strong style="color:var(--red)">Report for Authorities</strong><p style="margin-top:4px">${md(r.report_for_authorities)}</p></div>`;
+  if (r.parse_error) h+=`<div style="margin-top:8px;font-size:11px;color:var(--yellow);font-style:italic;">${esc(r.parse_error)}</div>`;
   h+=`<div style="font-size:9px;color:var(--dim);margin-top:6px;">Completed in ${r.elapsed||0}s</div>`;
   return h;
 }
@@ -401,7 +488,7 @@ function renderReport(r) {
 // ══════ LIVE MIC ══════
 let ws, mediaStream, myvad, monitoring = false;
 let audioCtx, analyser, meterRaf;
-let prevLiveV = 'UNCERTAIN';
+let prevLiveV = 'SAFE';
 
 function connectLive() {
   const p = $('cfgPipeline').value;
@@ -412,13 +499,14 @@ function connectLive() {
   ws.onmessage = ({data}) => {
     const m = JSON.parse(data); if (m.type !== 'result') return;
     chunkCounter++;
-    const d = { ...m, chunk: chunkCounter, _source: 'mic', call_verdict: m.call_verdict || m.verdict };
+    const rl = m.call_risk_level || m.call_verdict || m.risk_level || m.verdict;
+    const d = { ...m, chunk: chunkCounter, _source: 'mic', call_verdict: rl, call_risk_level: rl, call_risk_score: m.call_risk_score || m.risk_score || 0 };
     chunkData.push(d);
-    const isFlip = d.call_verdict !== prevLiveV;
+    const isFlip = rl !== prevLiveV;
     addHistItem(d, isFlip);
     showChunkInMain(chunkData.length - 1);
-    setV(d.call_verdict, isFlip ? `Changed from ${prevLiveV}` : d.summary || '');
-    prevLiveV = d.call_verdict;
+    setV(rl, isFlip ? `Changed from ${prevLiveV}` : d.summary || '');
+    prevLiveV = rl;
   };
 }
 
@@ -459,7 +547,7 @@ function stopMeter() { if(meterRaf) cancelAnimationFrame(meterRaf); $('audioMete
 $('micBtn').addEventListener('click', async () => {
   if (monitoring) { monitoring=false; myvad?.pause(); stopMeter(); $('micBtn').textContent='Start Monitoring'; $('micBtn').className='btn primary'; return; }
   if (!mediaStream) { try { mediaStream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}}); } catch { return alert('Mic denied'); } }
-  resetState(); prevLiveV = 'UNCERTAIN';
+  resetState(); prevLiveV = 'SAFE';
   if (ws) { ws.onclose=null; ws.close(); }
   connectLive();
   if (!myvad) {
@@ -467,7 +555,7 @@ $('micBtn').addEventListener('click', async () => {
       onSpeechEnd: a => { if(monitoring&&ws?.readyState===1) ws.send(JSON.stringify({audio:f32toWav(a), pipeline:$('cfgPipeline').value})); },
       onnxWASMBasePath:"https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/", baseAssetPath:"https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@0.0.29/dist/" });
   }
-  monitoring=true; myvad.start(); startMeter(); $('micBtn').textContent='Stop'; $('micBtn').className='btn danger'; setV('UNCERTAIN','Listening...');
+  monitoring=true; myvad.start(); startMeter(); $('micBtn').textContent='Stop'; $('micBtn').className='btn danger'; setV('SAFE','Listening...');
 });
 
 $('clearBtn').addEventListener('click', () => { resetState(); setV(null); $('curAnalysis').innerHTML='<div class="stage-label">Waiting</div><div style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:12px;">Choose a source and click Start</div>'; });
@@ -486,7 +574,7 @@ $('sStart').addEventListener('click', () => {
   const file = $('sFile').value; if (!file) return alert('Select a file');
   if (monitoring) { monitoring=false; myvad?.pause(); stopMeter(); $('micBtn').textContent='Start Monitoring'; $('micBtn').className='btn primary'; }
   resetState();
-  setV('UNCERTAIN','Starting simulation...');
+  setV('SAFE','Starting simulation...');
   $('sStart').disabled=true; $('sStart').textContent='Running...';
 
   sWs = new WebSocket(`${location.protocol==='https:'?'wss':'ws'}://${location.host}/ws/stream-sim`);
@@ -535,11 +623,13 @@ $('sStart').addEventListener('click', () => {
     }
 
     if (m.type==='chunk_result') {
-      const isFlip = m.call_verdict!==prevCallV;
+      const crl = m.call_risk_level || m.call_verdict;
+      const isFlip = crl!==prevCallV;
       $('progFill').style.width=(curChunk/totalChunks*100)+'%';
       m.chunk=curChunk; m.total_chunks=totalChunks; m._source='file';
+      m.call_verdict = crl; m.call_risk_level = crl;
       chunkData.push(m);
-      setV(m.call_verdict, isFlip?`CHANGED from ${prevCallV}`:`Chunk ${curChunk}/${totalChunks}`);
+      setV(crl, isFlip?`CHANGED from ${RISK_LABELS[prevCallV]||prevCallV}`:`Chunk ${curChunk}/${totalChunks}`);
       // Hide in-progress bar
       $('inProgress').className = 'in-progress';
       // Update sidebar
@@ -547,10 +637,10 @@ $('sStart').addEventListener('click', () => {
       addHistItem(m, isFlip);
       // Show result in main area
       showChunkInMain(chunkData.length-1);
-      prevCallV=m.call_verdict;
+      prevCallV=crl;
     }
 
-    if (m.type==='post_call') { setV(m.final_verdict||prevCallV,'Analysis complete'); $('progFill').style.width='100%'; showReportModal(m); }
+    if (m.type==='post_call') { setV(m.final_risk_level||m.final_verdict||prevCallV,'Analysis complete'); setRiskBar(m.risk_score||0); $('progFill').style.width='100%'; showReportModal(m); }
     if (m.type==='done') { $('sStart').disabled=false; $('sStart').textContent='Start Sim'; }
   };
 });

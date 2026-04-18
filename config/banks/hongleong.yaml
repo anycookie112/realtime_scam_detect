@@ -1,0 +1,33 @@
+key: hongleong
+name: Hong Leong Bank
+aliases:
+  - hong leong
+  - hong leong bank
+  - hlb
+  - hlb connect
+
+hotline: 03-7626-8899
+fraud_line: 03-7626-8899
+
+official_numbers:
+  - number: 03-7626-8899
+    desc: Main hotline
+  - number: 1-300-88-1818
+    desc: HLB Connect
+
+official_sms_senders:
+  - HLB
+  - HongLeong
+
+app: HLB Connect
+auth: S-Sign via HLB Connect
+online: HLB Connect (hlb.com.my)
+
+never: >
+  ask for TAC/OTP/password, ask to transfer to safe account,
+  install remote access apps, call from personal mobile,
+  threaten arrest
+
+legit: >
+  verify partial account details, confirm identity,
+  request branch visit, send SMS from 'HLB' sender ID

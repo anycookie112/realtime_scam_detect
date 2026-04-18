@@ -1,0 +1,31 @@
+key: bsn
+name: Bank Simpanan Nasional
+aliases:
+  - bsn
+  - bank simpanan nasional
+
+hotline: 1-300-88-1900
+fraud_line: 1-300-88-1900
+
+official_numbers:
+  - number: 1-300-88-1900
+    desc: Main hotline
+  - number: 03-2613-1900
+    desc: KL line
+
+official_sms_senders:
+  - BSN
+  - myBSN
+
+app: myBSN
+auth: Secure Verification via myBSN
+online: myBSN (mybsn.com.my)
+
+never: >
+  ask for TAC/OTP/password, ask to transfer to safe account,
+  install remote access apps, call from personal mobile,
+  threaten arrest
+
+legit: >
+  verify partial account details, confirm identity,
+  request branch visit

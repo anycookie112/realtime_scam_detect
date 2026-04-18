@@ -1,0 +1,32 @@
+key: ambank
+name: AmBank
+aliases:
+  - ambank
+  - am bank
+  - ambank group
+
+hotline: 03-2178-8888
+fraud_line: 03-2178-8888
+
+official_numbers:
+  - number: 03-2178-8888
+    desc: Main hotline
+  - number: 1-300-88-8188
+    desc: AmBank call centre
+
+official_sms_senders:
+  - AmBank
+  - AMBANK
+
+app: AmOnline
+auth: Secure2u via AmOnline
+online: AmOnline (ambank.com.my)
+
+never: >
+  ask for TAC/OTP/password, ask to transfer to safe account,
+  install remote access apps, call from personal mobile,
+  threaten arrest
+
+legit: >
+  verify partial account details, confirm identity,
+  request branch visit, send SMS from 'AmBank' sender ID

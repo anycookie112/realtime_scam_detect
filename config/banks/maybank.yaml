@@ -1,0 +1,46 @@
+key: maybank
+name: Maybank
+aliases:
+  - maybank
+  - malayan banking
+  - mbb
+  - maybank2u
+  - mae
+
+hotline: 1-300-88-6688
+fraud_line: 03-5891-4744
+
+official_numbers:
+  - number: 1-300-88-6688
+    desc: Main hotline
+  - number: 03-7844-3696
+    desc: International
+  - number: 03-5891-4744
+    desc: 24h fraud reporting
+  - number: 03-2297-2697
+    desc: Credit card services
+  - number: 1-300-88-1868
+    desc: MAE support
+  - number: 03-2074-7228
+    desc: Premier Wealth
+
+official_sms_senders:
+  - MAE
+  - Maybank
+  - MAYBANK
+
+app: MAE by Maybank
+auth: Secure2u (not SMS TAC)
+online: Maybank2u (maybank2u.com.my)
+
+never: >
+  ask for TAC/OTP/password, ask to transfer to safe account,
+  install TeamViewer/AnyDesk, call from personal mobile,
+  threaten arrest, ask to keep call secret,
+  ask to share Secure2u code, send APK links
+
+legit: >
+  verify last 4 digits of card, confirm partial IC,
+  ask security questions, request branch visit,
+  send SMS from 'MAE'/'Maybank' sender ID,
+  suggest using Kill Switch feature
