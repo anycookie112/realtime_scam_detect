@@ -1,0 +1,602 @@
+[
+  {
+    "name": "ms_high_risk_021",
+    "text": "Jabatan kastam Pos Laju. Bungkusan anda mengandungi barang haram. Untuk mengelakkan tuduhan jenayah, pindahkan yuran pemeriksaan RM 8,900 ke 1234-5678-9012 segera.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_safe_011",
+    "text": "RHB Bank mengesahkan pemindahan dana anda sebanyak RM 5,800 dari akaun anda yang berakhir 3478. Jika anda tidak membenarkan ini, sila hubungi 03-9206-8118 segera.",
+    "risk_level": "SAFE",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_low_risk_010",
+    "text": "Khidmat Premier Hong Leong. Kami ingin menawarkan sesi perancangan kewangan percuma di cawangan utama kami. Anda lapang minggu depan?",
+    "risk_level": "LOW_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_medium_risk_021",
+    "text": "Selamat petang, dari pengumpul dana Bulan Sabit Merah Malaysia untuk bantuan banjir di Kelantan. Adakah anda ingin menderma? Saya boleh berikan nombor akaun kami sekarang. Untuk derma RM 1,250 atau lebih, kami akan hantar resit pengecualian cukai.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_039",
+    "text": "Ini MCMC. Anda sedang disiasat untuk aktiviti jenayah. Untuk mengelakkan tangkapan, anda mesti bayar jaminan RM 1,250 segera.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_safe_019",
+    "text": "Penghantaran FedEx. Bungkusan anda dalam perjalanan hari ini. Pemandu akan hubungi sebelum sampai. Tiada bayaran diperlukan.",
+    "risk_level": "SAFE",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_015",
+    "text": "Hi, ini Hassan dari dana pelaburan persendirian. Ahli-ahli buat RM 2,300 bulan lepas. Pulangan terjamin, tiada risiko. Hantar RM 2,300 ke 1234-5678-9012 untuk mula.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_medium_risk_017",
+    "text": "Hello, ini BSN. Kami perasan percubaan log masuk luar biasa dari peranti baru. Untuk keselamatan, sila hubungi kami semula di 1-300-88-1900 dalam masa 30 minit. Sediakan nombor akaun dan IC anda.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_safe_013",
+    "text": "Pemantauan penipuan Maybank. Kad anda yang berakhir 6612 digunakan untuk RM 5,800 di restoran pada pukul 3 petang. Adakah anda buat pembelian ini? Jika tidak, kami akan bekukan kad segera.",
+    "risk_level": "SAFE",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_safe_020",
+    "text": "Selamat pagi dari AIA Malaysia mengenai polisi insurans hayat anda yang berakhir 1156. Premium RM 1,250 akan dibayar bulan depan pada 15hb. Hanya mengesahkan butiran perhubungan anda. Anda boleh urus polisi melalui aplikasi AIA.",
+    "risk_level": "SAFE",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_017",
+    "text": "Permohonan pinjaman anda diluluskan. Pindahkan yuran insurans RM 800 ke 9001-2233-4455 dalam masa sejam atau kelulusan akan dibatalkan.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_low_risk_006",
+    "text": "Peringatan: temujanji anda dengan pengurus hubungan Hong Leong adalah pukul 2 petang esok di cawangan Penang kami. Sila bawa IC anda. Untuk menjadual semula, hubungi 03-7626-8899.",
+    "risk_level": "LOW_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_037",
+    "text": "Ini Sarjan Lim dari LHDN. IC anda telah digunakan untuk pengubahan wang haram. Ada waran tangkap untuk anda. Bayar jaminan RM 15,000 ke 7812-3344-5566 segera atau pegawai akan datang ke rumah anda.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_safe_005",
+    "text": "Bank Islam menghubungi mengenai permohonan baru anda. Boleh anda sahkan 4 digit terakhir IC untuk pengesahan? Kami tidak perlukan maklumat peribadi lain.",
+    "risk_level": "SAFE",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_safe_003",
+    "text": "Hello, panggilan ihsan dari Hong Leong. Ansuran pinjaman rumah anda sebanyak RM 890 akan dibayar pada 20hb. Jika anda telah membayar, sila abaikan. Untuk pertanyaan hubungi 03-7626-8899 atau lawati mana-mana cawangan.",
+    "risk_level": "SAFE",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_025",
+    "text": "Kemas kini keselamatan CIMB. Pasang aplikasi baru dari pautan yang saya baru hantar. Kemudian kongsikan kod pengesahan yang muncul di skrin anda.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_low_risk_014",
+    "text": "Hello, ini ejen insurans anda. Hanya peringatan kajian semula polisi tahunan anda minggu depan. Tiada bayaran diperlukan pada peringkat ini.",
+    "risk_level": "LOW_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_low_risk_004",
+    "text": "Menghubungi dari pasukan pengalaman pelanggan AmBank. Anda baru-baru ini melawat cawangan Johor Bahru kami. Kami menghargai tinjauan maklum balas 2 minit. Kami tidak akan tanya butiran peribadi. Lompat soalan yang anda tidak selesa.",
+    "risk_level": "LOW_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_008",
+    "text": "Ini Sarjan Lim dari LHDN. IC anda telah digunakan untuk pengubahan wang haram. Ada waran tangkap untuk anda. Bayar jaminan RM 890 ke 8899-7766-5544 segera atau pegawai akan datang ke rumah anda.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_024",
+    "text": "Ini sokongan perbankan digital Maybank. Aplikasi MAE anda perlu dikemas kini. Klik pautan yang saya hantar ke SMS untuk muat turun kemas kini selamat. Anda perlu masukkan semula nama pengguna dan kata laluan untuk pengesahan.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_022",
+    "text": "Sayang, saya tersekat di lapangan terbang London dan dompet saya hilang. Saya perlukan RM 1,250 segera untuk beli tiket pulang. Tolong pindahkan ke 9001-2233-4455. Saya janji akan bayar balik. Jangan beritahu sesiapa, saya malu.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_medium_risk_004",
+    "text": "Hello, ini Hong Leong. Kami perasan percubaan log masuk luar biasa dari peranti baru. Untuk keselamatan, sila hubungi kami semula di 03-7626-8899 dalam masa 30 minit. Sediakan nombor akaun dan IC anda.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_medium_risk_019",
+    "text": "Saya menjalankan tinjauan kewangan untuk Bank Negara. Saya perlukan pendapatan bulanan, jumlah simpanan, bilangan akaun, dan pinjaman tertunggak anda. Boleh saya juga ambil nama penuh dan nombor IC anda?",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_018",
+    "text": "Hello, ini Maxis. Talian anda telah dibenderakan untuk aktiviti haram dan akan ditamatkan dalam 2 jam. Berikan IC anda dan bayar deposit keselamatan RM 450 ke 8899-7766-5544 untuk mengelakkan penggantungan.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_040",
+    "text": "Panggilan penting dari LHDN. Anda mempunyai cukai tertunggak sebanyak RM 890. Bayar dalam 24 jam atau waran akan dikeluarkan. Tekan 1 untuk bercakap dengan pegawai penguatkuasaan kami sekarang.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_low_risk_007",
+    "text": "Hello, ini ejen insurans anda. Hanya peringatan kajian semula polisi tahunan anda minggu depan. Tiada bayaran diperlukan pada peringkat ini.",
+    "risk_level": "LOW_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_medium_risk_018",
+    "text": "Pasukan penipuan Bank Islam. Aktiviti mencurigakan dikesan. Sila hubungi kami semula segera di 03-2609-0900. Jangan tangguh atau akaun anda mungkin dikunci.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_medium_risk_013",
+    "text": "Amaran terakhir. Bil belum dibayar anda sebanyak RM 890 akan dirujuk ke agensi pengutipan esok. Buat bayaran sekarang untuk mengelakkan tindakan undang-undang.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_014",
+    "text": "Saya penganalisis kripto kanan. Kami ada maklumat dalaman tentang token yang akan 10x minggu ini. Pelaburan minimum RM 5,800. Alamat dompet akan dihantar di WhatsApp.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_safe_010",
+    "text": "AmBank Premier. Hanya peringatan anda ada temujanji dengan pengurus hubungan Cik Catherine di cawangan Melaka esok pukul 2 petang. Sila bawa IC. Untuk menjadual semula, hubungi 03-2178-8888.",
+    "risk_level": "SAFE",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_029",
+    "text": "Bogus Bank menghubungi. Sila kongsikan OTP 6 digit anda dan pasang TeamViewer supaya kami boleh melindungi akaun anda. Jangan beritahu sesiapa tentang panggilan ini.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_low_risk_012",
+    "text": "Hi, ini panggilan maklum balas pantas dari RCE Capital. Bagaimana anda menilai pengalaman terkini anda dengan kami pada skala 1 hingga 5?",
+    "risk_level": "LOW_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_013",
+    "text": "Tahniah! Anda telah terpilih untuk program forex eksklusif yang menjamin pulangan 30 peratus sebulan. Hanya deposit RM 450 ke 8899-7766-5544 untuk merebut tempat anda. Tawaran ini tamat hari ini.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_005",
+    "text": "Hello, ini pemantauan penipuan CIMB. Akaun anda telah terjejas. Untuk keselamatan anda, sila pindahkan semua wang ke akaun pegangan selamat kami: 7812-3344-5566.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_medium_risk_009",
+    "text": "Hi, ini Yayasan Bantuan Kanak-Kanak. Kami mengumpul dana untuk anak yatim. Boleh anda derma RM 3,500 ke akaun kami: 8899-7766-5544? Setiap ringgit membantu.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_medium_risk_020",
+    "text": "Tinjauan kesihatan kerajaan. Kami perlukan nama penuh, IC, alamat, dan pendapatan isi rumah anda untuk statistik nasional. Tinjauan ambil masa 10 minit.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_safe_012",
+    "text": "Hello, menghubungi dari BSN mengenai transaksi pada kad anda yang berakhir 4523. Terdapat caj RM 2,300 di pasar raya di Penang hari ini. Adakah ini anda? Jika tidak, kami akan sekat kad dan anda boleh ke mana-mana cawangan dengan IC anda.",
+    "risk_level": "SAFE",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_medium_risk_002",
+    "text": "Hi, saya dari insurans RCE Capital. Perlindungan semasa anda sangat tidak mencukupi. Jika berlaku apa-apa, keluarga anda akan dalam masalah. Saya ada pelan untuk RM 50,000 sebulan. Saya perlukan jawapan anda hari ini, kadar ini tamat malam ini.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_001",
+    "text": "Hello, ini jabatan keselamatan Public Bank. Kami mengesan akses tanpa kebenaran pada akaun PBe anda. Sila kongsikan nombor IC penuh dan kata laluan perbankan dalam talian dengan segera untuk kami melindungi akaun anda.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_medium_risk_001",
+    "text": "Ini AEON Credit. Bayaran kad kredit anda sebanyak RM 12,400 telah lewat 45 hari. Jika tidak diterima menjelang Jumaat, kami akan ambil tindakan undang-undang dan laporkan ke CTOS. Berjanji tarikh sekarang.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_medium_risk_010",
+    "text": "Saya menghubungi tentang peluang timeshare istimewa. Slot terhad, tawaran eksklusif, tapi saya perlukan keputusan anda hari ini. Boleh saya dapatkan IC dan butiran bank untuk merezab?",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_safe_014",
+    "text": "Hello, panggilan ihsan dari CIMB. Ansuran pinjaman rumah anda sebanyak RM 8,900 akan dibayar pada 20hb. Jika anda telah membayar, sila abaikan. Untuk pertanyaan hubungi 03-6204-7788 atau lawati mana-mana cawangan.",
+    "risk_level": "SAFE",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_004",
+    "text": "Ini AmBank. Kami akan memindahkan anda kepada pegawai penipuan. Untuk meneruskan, sila berikan nombor kad AmBank penuh dan kod CVV di belakang kad.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_safe_015",
+    "text": "Peringatan AmBank: bayaran minimum kad kredit anda sebanyak RM 1,250 akan dibayar dalam 3 hari. Bayaran boleh dibuat melalui perbankan dalam talian atau mana-mana cawangan.",
+    "risk_level": "SAFE",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_027",
+    "text": "Jabatan IT RHB Bank. Pasang AnyDesk sekarang supaya kami boleh menyelesaikan amaran keselamatan pada peranti anda. Kongsikan kod 9 digit yang muncul.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_009",
+    "text": "Inspektor Vivian dari PDRM. Akaun bank anda dikaitkan dengan pengedaran dadah. Untuk membersihkan nama anda, pindahkan RM 8,900 ke 5628-1190-3347 sekarang.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_010",
+    "text": "Ini Pos Laju customs. Anda sedang disiasat untuk aktiviti jenayah. Untuk mengelakkan tangkapan, anda mesti bayar jaminan RM 12,400 segera.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_033",
+    "text": "Ini AmBank. Kami akan memindahkan anda kepada pegawai penipuan. Untuk meneruskan, sila berikan nombor kad AmBank penuh dan kod CVV di belakang kad.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_safe_006",
+    "text": "Hello dari Bank Islam. Untuk memproses permintaan penggantian kad anda, sila sahkan nama anda dan 4 digit terakhir akaun. Terima kasih.",
+    "risk_level": "SAFE",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_medium_risk_014",
+    "text": "Ini AEON Credit. Bayaran kad kredit anda sebanyak RM 450 telah lewat 45 hari. Jika tidak diterima menjelang Jumaat, kami akan ambil tindakan undang-undang dan laporkan ke CTOS. Berjanji tarikh sekarang.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_036",
+    "text": "Amaran keselamatan BSN. Wang anda dalam bahaya. Pindahkan segera ke 9001-2233-4455 untuk simpanan selamat semasa kami menyiasat.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_002",
+    "text": "Selamat petang, ini pasukan penipuan RHB Bank. Akaun anda dalam bahaya. Kami perlukan anda kongsikan OTP yang baru dihantar ke telefon anda untuk pengesahan identiti.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_035",
+    "text": "Menghubungi dari Maybank. Aktiviti mencurigakan dikesan. Sila pindahkan simpanan anda ke akaun perlindungan sementara ini: 9001-2233-4455. Jangan beritahu sesiapa tentang panggilan ini.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_safe_009",
+    "text": "Selamat pagi dari AIA Malaysia mengenai polisi insurans hayat anda yang berakhir 1156. Premium RM 450 akan dibayar bulan depan pada 15hb. Hanya mengesahkan butiran perhubungan anda. Anda boleh urus polisi melalui aplikasi AIA.",
+    "risk_level": "SAFE",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_028",
+    "text": "Selamat pagi, pasukan keselamatan Bogus Bank. Aktiviti mencurigakan pada akaun anda. Saya perlukan nama pengguna dan kata laluan penuh anda untuk pengesahan. Ini prosedur standard.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_low_risk_008",
+    "text": "Hi, menghubungi dari pusat kad Hong Leong. Kami ada pelan ansuran sifar peratus eksklusif untuk 12 bulan untuk pembelian melebihi RM 25,000 di pedagang terpilih. Anda nak dengar lagi?",
+    "risk_level": "LOW_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_medium_risk_022",
+    "text": "Hi, ini Yayasan Bantuan Kanak-Kanak. Kami mengumpul dana untuk anak yatim. Boleh anda derma RM 12,400 ke akaun kami: 1234-5678-9012? Setiap ringgit membantu.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_safe_001",
+    "text": "Hello, menghubungi dari Bank Islam mengenai transaksi pada kad anda yang berakhir 4523. Terdapat caj RM 8,900 di stesen minyak di Shah Alam hari ini. Adakah ini anda? Jika tidak, kami akan sekat kad dan anda boleh ke mana-mana cawangan dengan IC anda.",
+    "risk_level": "SAFE",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_medium_risk_015",
+    "text": "Hi, saya dari insurans Aspire. Perlindungan semasa anda sangat tidak mencukupi. Jika berlaku apa-apa, keluarga anda akan dalam masalah. Saya ada pelan untuk RM 2,300 sebulan. Saya perlukan jawapan anda hari ini, kadar ini tamat malam ini.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_low_risk_003",
+    "text": "Khidmat Premier Public Bank. Kami ingin menawarkan sesi perancangan kewangan percuma di cawangan utama kami. Anda lapang minggu depan?",
+    "risk_level": "LOW_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_medium_risk_024",
+    "text": "Hi, anda telah terpilih untuk pakej percutian mewah bernilai RM 1,250. Hanya bayar yuran tempahan RM 500 untuk mengesahkan. Tawaran tamat 6 petang hari ini.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_032",
+    "text": "Saya dari jabatan pematuhan Maybank. Untuk mengelakkan akaun anda dibekukan, sila kongsikan kod kelulusan Secure2u sekarang.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_034",
+    "text": "Hello, ini pemantauan penipuan BSN. Akaun anda telah terjejas. Untuk keselamatan anda, sila pindahkan semua wang ke akaun pegangan selamat kami: 9001-2233-4455.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_006",
+    "text": "Menghubungi dari CIMB. Aktiviti mencurigakan dikesan. Sila pindahkan simpanan anda ke akaun perlindungan sementara ini: 8899-7766-5544. Jangan beritahu sesiapa tentang panggilan ini.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_medium_risk_012",
+    "text": "Ini notis ketiga dari RCE Capital Pemulihan Kredit. Hutang anda sebanyak RM 50,000 mesti diselesaikan menjelang Isnin atau kami teruskan ke mahkamah. Apa pelan bayaran anda?",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_007",
+    "text": "Amaran keselamatan BSN. Wang anda dalam bahaya. Pindahkan segera ke 5628-1190-3347 untuk simpanan selamat semasa kami menyiasat.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_low_risk_002",
+    "text": "Khidmat pelanggan Digi. Kami ada pelan baru dengan data 100GB dan panggilan tanpa had untuk RM 80 sebulan, iaitu RM 20 lebih murah dari pelan semasa anda. Tiada komitmen. Berminat?",
+    "risk_level": "LOW_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_031",
+    "text": "Selamat petang, ini pasukan penipuan AmBank. Akaun anda dalam bahaya. Kami perlukan anda kongsikan OTP yang baru dihantar ke telefon anda untuk pengesahan identiti.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_medium_risk_025",
+    "text": "Ini notis ketiga dari Aspire Pemulihan Kredit. Hutang anda sebanyak RM 50,000 mesti diselesaikan menjelang Isnin atau kami teruskan ke mahkamah. Apa pelan bayaran anda?",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_026",
+    "text": "Saya dari sokongan teknikal Public Bank. Untuk membaiki masalah akaun anda, sila muat turun TeamViewer dan beri saya kod akses. Kami perlu memeriksa telefon anda dari jauh.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_safe_007",
+    "text": "Hello, ini DHL. Kami ada bungkusan untuk anda, nombor jejak PL20247762. Kami cuba hantar hari ini tapi tiada sesiapa di rumah. Anda mahu hantar semula esok 9 pagi hingga 12 tengah hari, atau ambil dari hab Ipoh kami?",
+    "risk_level": "SAFE",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_011",
+    "text": "Panggilan penting dari LHDN. Anda mempunyai cukai tertunggak sebanyak RM 890. Bayar dalam 24 jam atau waran akan dikeluarkan. Tekan 1 untuk bercakap dengan pegawai penguatkuasaan kami sekarang.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_medium_risk_011",
+    "text": "Hi, anda telah terpilih untuk pakej percutian mewah bernilai RM 5,800. Hanya bayar yuran tempahan RM 500 untuk mengesahkan. Tawaran tamat 6 petang hari ini.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_medium_risk_007",
+    "text": "Tinjauan kesihatan kerajaan. Kami perlukan nama penuh, IC, alamat, dan pendapatan isi rumah anda untuk statistik nasional. Tinjauan ambil masa 10 minit.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_low_risk_015",
+    "text": "Hi, menghubungi dari pusat kad RHB Bank. Kami ada pelan ansuran sifar peratus eksklusif untuk 12 bulan untuk pembelian melebihi RM 1,250 di pedagang terpilih. Anda nak dengar lagi?",
+    "risk_level": "LOW_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_medium_risk_023",
+    "text": "Saya menghubungi tentang peluang timeshare istimewa. Slot terhad, tawaran eksklusif, tapi saya perlukan keputusan anda hari ini. Boleh saya dapatkan IC dan butiran bank untuk merezab?",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_low_risk_011",
+    "text": "Menghubungi dari pasukan pengalaman pelanggan Bank Islam. Anda baru-baru ini melawat cawangan Melaka kami. Kami menghargai tinjauan maklum balas 2 minit. Kami tidak akan tanya butiran peribadi. Lompat soalan yang anda tidak selesa.",
+    "risk_level": "LOW_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_low_risk_013",
+    "text": "Peringatan: temujanji anda dengan pengurus hubungan BSN adalah pukul 2 petang esok di cawangan Ipoh kami. Sila bawa IC anda. Untuk menjadual semula, hubungi 1-300-88-1900.",
+    "risk_level": "LOW_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_safe_017",
+    "text": "Hello dari CIMB. Untuk memproses permintaan penggantian kad anda, sila sahkan nama anda dan 4 digit terakhir akaun. Terima kasih.",
+    "risk_level": "SAFE",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_012",
+    "text": "Jabatan audit LHDN. Perniagaan anda mempunyai cukai tidak dibayar sebanyak RM 50,000. Untuk mengelakkan rampasan aset, pindahkan bayaran segera ke 1234-5678-9012.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_safe_016",
+    "text": "Public Bank menghubungi mengenai permohonan baru anda. Boleh anda sahkan 4 digit terakhir IC untuk pengesahan? Kami tidak perlukan maklumat peribadi lain.",
+    "risk_level": "SAFE",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_low_risk_005",
+    "text": "Hi, ini panggilan maklum balas pantas dari Asia Brilliant. Bagaimana anda menilai pengalaman terkini anda dengan kami pada skala 1 hingga 5?",
+    "risk_level": "LOW_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_020",
+    "text": "Hello, ini FedEx. Bungkusan atas nama anda telah dirampas di kastam kerana mengandungi barang haram. Saya akan memindahkan anda kepada pegawai penyiasat. Anda perlu bayar denda RM 890 ke 9001-2233-4455 untuk membersihkan nama anda.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_safe_002",
+    "text": "Pemantauan penipuan Hong Leong. Kad anda yang berakhir 3478 digunakan untuk RM 15,000 di butik mewah pada pukul 3 petang. Adakah anda buat pembelian ini? Jika tidak, kami akan bekukan kad segera.",
+    "risk_level": "SAFE",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_medium_risk_016",
+    "text": "Jabatan retensi Maxis. Saya nampak anda nak port nombor anda keluar. Kekal dengan kami — saya boleh tawarkan diskaun 50 peratus untuk 6 bulan, tapi saya perlukan nombor MyKad anda untuk memprosesnya sekarang.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_030",
+    "text": "Hello, ini jabatan keselamatan Public Bank. Kami mengesan akses tanpa kebenaran pada akaun PBe anda. Sila kongsikan nombor IC penuh dan kata laluan perbankan dalam talian dengan segera untuk kami melindungi akaun anda.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_medium_risk_003",
+    "text": "Jabatan retensi Celcom. Saya nampak anda nak port nombor anda keluar. Kekal dengan kami — saya boleh tawarkan diskaun 50 peratus untuk 6 bulan, tapi saya perlukan nombor MyKad anda untuk memprosesnya sekarang.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_safe_004",
+    "text": "Peringatan Bank Islam: bayaran minimum kad kredit anda sebanyak RM 1,250 akan dibayar dalam 3 hari. Bayaran boleh dibuat melalui perbankan dalam talian atau mana-mana cawangan.",
+    "risk_level": "SAFE",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_safe_008",
+    "text": "Penghantaran Shopee. Bungkusan anda dalam perjalanan hari ini. Pemandu akan hubungi sebelum sampai. Tiada bayaran diperlukan.",
+    "risk_level": "SAFE",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_low_risk_009",
+    "text": "Khidmat pelanggan U Mobile. Kami ada pelan baru dengan data 100GB dan panggilan tanpa had untuk RM 80 sebulan, iaitu RM 20 lebih murah dari pelan semasa anda. Tiada komitmen. Berminat?",
+    "risk_level": "LOW_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_023",
+    "text": "Sayang, ibu saya di hospital dan saya tak boleh akses akaun. Boleh awak pindahkan RM 25,000 ke 7812-3344-5566 untuk bantu bayar bil perubatan? Saya cinta awak dan akan bayar balik minggu depan.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_medium_risk_008",
+    "text": "Selamat petang, dari pengumpul dana Bulan Sabit Merah Malaysia untuk bantuan banjir di Kelantan. Adakah anda ingin menderma? Saya boleh berikan nombor akaun kami sekarang. Untuk derma RM 2,300 atau lebih, kami akan hantar resit pengecualian cukai.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_019",
+    "text": "Khidmat pelanggan Unifi. Nombor anda digunakan untuk aktiviti jenayah. Sahkan identiti dengan kongsikan IC, nombor MyKad, dan butiran bank sekarang.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_003",
+    "text": "Saya dari jabatan pematuhan RHB Bank. Untuk mengelakkan akaun anda dibekukan, sila kongsikan kod kelulusan Secure2u sekarang.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_038",
+    "text": "Inspektor Lim dari PDRM. Akaun bank anda dikaitkan dengan pengedaran dadah. Untuk membersihkan nama anda, pindahkan RM 50,000 ke 8899-7766-5544 sekarang.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_low_risk_001",
+    "text": "Hi, menghubungi dari pusat kad CIMB. Kami ada pelan ansuran sifar peratus eksklusif untuk 12 bulan untuk pembelian melebihi RM 5,800 di pedagang terpilih. Anda nak dengar lagi?",
+    "risk_level": "LOW_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_safe_018",
+    "text": "Hello, ini Pos Laju. Kami ada bungkusan untuk anda, nombor jejak LZ20252813. Kami cuba hantar hari ini tapi tiada sesiapa di rumah. Anda mahu hantar semula esok 9 pagi hingga 12 tengah hari, atau ambil dari hab Penang kami?",
+    "risk_level": "SAFE",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_medium_risk_005",
+    "text": "Pasukan penipuan CIMB. Aktiviti mencurigakan dikesan. Sila hubungi kami semula segera di 03-6204-7788. Jangan tangguh atau akaun anda mungkin dikunci.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_medium_risk_006",
+    "text": "Saya menjalankan tinjauan kewangan untuk Bank Negara. Saya perlukan pendapatan bulanan, jumlah simpanan, bilangan akaun, dan pinjaman tertunggak anda. Boleh saya juga ambil nama penuh dan nombor IC anda?",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "ms"
+  },
+  {
+    "name": "ms_high_risk_016",
+    "text": "Berita baik! Pinjaman peribadi anda sebanyak RM 890 telah pra-diluluskan. Untuk pengeluaran dana hari ini, hanya bayar yuran pemprosesan RM 500 ke 7812-3344-5566. Tawaran masa terhad.",
+    "risk_level": "HIGH_RISK",
+    "lang": "ms"
+  }
+]

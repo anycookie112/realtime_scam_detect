@@ -1,0 +1,602 @@
+[
+  {
+    "name": "mixed_high_risk_005",
+    "text": "Hello, this is Public Bank fraud monitoring. Your account dah compromised. For your safety, please transfer all funds ke our secure holding account: 8899-7766-5544.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_low_risk_003",
+    "text": "Maybank Premier service. We'd like offer you a complimentary financial planning session at flagship branch. Are you free next week?",
+    "risk_level": "LOW_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_safe_016",
+    "text": "AmBank calling pasal recent application. Could you confirm last 4 digits IC for verification? Kami tak perlukan other personal information.",
+    "risk_level": "SAFE",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_medium_risk_013",
+    "text": "Final warning. Unpaid bill RM 8,900 akan referred ke collections agency tomorrow. Make payment sekarang to avoid legal action.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_medium_risk_020",
+    "text": "Government health survey. Kami perlukan full name, IC, address, dan household income for national statistics. Survey ambil 10 minutes.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_019",
+    "text": "Celcom customer service. Your number digunakan for criminal activity. Verify identity by sharing IC, MyKad number, dan bank details now.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_024",
+    "text": "This is BSN digital banking. Your myBSN app needs update. Click link saya hantar ke SMS untuk download secure update. You'll need re-enter username dan password untuk verify.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_medium_risk_009",
+    "text": "Hi, ini Children's Aid Foundation. We're raising funds untuk orphans. Boleh anda donate RM 3,500 ke account: 8899-7766-5544? Setiap ringgit helps.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_035",
+    "text": "Calling dari Public Bank. Suspicious activity detected. Please move savings ke this temporary protected account: 7812-3344-5566. Don't tell anyone pasal call ni.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_023",
+    "text": "Honey, my mother dekat hospital and I tak boleh access account. Can you transfer RM 1,250 ke 5628-1190-3347 for medical bills? I love you and akan bayar balik next week.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_009",
+    "text": "Inspector Catherine dari PDRM. Your bank account linked to drug trafficking. To clear your name, transfer RM 1,250 ke 9001-2233-4455 sekarang.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_medium_risk_018",
+    "text": "BSN fraud team. Suspicious activity detected. Please call us back urgently at 1-300-88-1900. Don't delay atau account anda mungkin locked.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_safe_014",
+    "text": "Hello, courtesy call dari Public Bank. Home loan instalment RM 5,800 due on 20th. Kalau dah bayar, please disregard. For questions call 1-800-22-5555 atau visit any branch.",
+    "risk_level": "SAFE",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_007",
+    "text": "AmBank security alert. Your money at risk. Transfer immediately ke 1234-5678-9012 for safekeeping while we investigate.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_low_risk_013",
+    "text": "Reminder: appointment dengan Public Bank relationship manager pukul 2pm tomorrow at Johor Bahru branch. Please bring IC. To reschedule, call 1-800-22-5555.",
+    "risk_level": "LOW_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_029",
+    "text": "Bogus Bank calling. Please share 6-digit OTP and install TeamViewer supaya kami boleh secure account. Jangan beritahu sesiapa pasal call ni.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_038",
+    "text": "Inspector Catherine dari PDRM. Your bank account linked to drug trafficking. To clear your name, transfer RM 1,250 ke 1234-5678-9012 sekarang.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_safe_019",
+    "text": "Shopee dispatch. Your package out for delivery today. Driver akan call before arrival. No payment needed.",
+    "risk_level": "SAFE",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_031",
+    "text": "Good afternoon, calling dari Maybank fraud team. Your account at risk. We need you share OTP yang baru hantar ke phone untuk verify identity.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_safe_012",
+    "text": "Hello, calling dari CIMB regarding transaction on card ending 1156. Ada charge RM 15,000 at luxury boutique kat Kuala Lumpur today. Was this you? Kalau tak, we'll block the card and you boleh visit any branch with IC.",
+    "risk_level": "SAFE",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_medium_risk_007",
+    "text": "Government health survey. Kami perlukan full name, IC, address, dan household income for national statistics. Survey ambil 10 minutes.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_medium_risk_002",
+    "text": "Hi, saya dari insurans RCE Capital. Your current coverage sangat inadequate. Kalau anything happens, family you akan dalam trouble. I ada plan for RM 50,000 per month. I need answer today, the rate expires tonight.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_low_risk_014",
+    "text": "Hello, ini your insurance agent. Just reminder annual policy review next week. No payment needed at this stage.",
+    "risk_level": "LOW_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_medium_risk_003",
+    "text": "Maxis retention department. I see you nak port nombor out. Stay with us — I can offer 50 percent off untuk 6 months, tapi I need MyKad number you to process this sekarang.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_003",
+    "text": "Saya from Hong Leong compliance department. Untuk prevent your account from being frozen, please share your Secure2u approval code right now.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_safe_003",
+    "text": "Hello, courtesy call dari RHB Bank. Home loan instalment RM 8,900 due on 20th. Kalau dah bayar, please disregard. For questions call 03-9206-8118 atau visit any branch.",
+    "risk_level": "SAFE",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_low_risk_008",
+    "text": "Hi, calling dari CIMB card centre. We have exclusive zero percent instalment plan untuk 12 months on purchases above RM 1,250 at selected merchants. You nak hear more?",
+    "risk_level": "LOW_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_safe_010",
+    "text": "Bank Islam Premier. Just reminder you ada appointment dengan relationship manager Ms Priya at Penang branch tomorrow 2pm. Please bring IC. To reschedule, call 03-2609-0900.",
+    "risk_level": "SAFE",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_medium_risk_015",
+    "text": "Hi, saya dari insurans AEON. Your current coverage sangat inadequate. Kalau anything happens, family you akan dalam trouble. I ada plan for RM 25,000 per month. I need answer today, the rate expires tonight.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_safe_001",
+    "text": "Hello, calling dari Bank Islam regarding transaction on card ending 4523. Ada charge RM 15,000 at jewellery store kat Penang today. Was this you? Kalau tak, we'll block the card and you boleh visit any branch with IC.",
+    "risk_level": "SAFE",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_004",
+    "text": "This is Public Bank. Kami transferring you to fraud officer. To proceed, please provide full Public Bank card number and CVV code on the back.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_015",
+    "text": "Hi, ini Vivian dari private investment fund. Members made RM 1,250 last month. Guaranteed returns, no risk. Send RM 1,250 ke 8899-7766-5544 untuk start.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_safe_004",
+    "text": "RHB Bank reminder: credit card minimum payment RM 2,300 due dalam 3 days. Payment boleh dibuat via RHB Now atau any branch.",
+    "risk_level": "SAFE",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_001",
+    "text": "Hello, ini Bank Islam security department. We detected unauthorised access pada GO account you. Please share full IC number dan online banking password sekarang juga supaya kami secure your account.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_safe_017",
+    "text": "Hello dari Hong Leong. To process card replacement request, please confirm name and last 4 digits account. Thank you.",
+    "risk_level": "SAFE",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_medium_risk_005",
+    "text": "Maybank fraud team. Suspicious activity detected. Please call us back urgently at 1-300-88-6688. Don't delay atau account anda mungkin locked.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_012",
+    "text": "LHDN audit department. Your business ada unpaid taxes RM 8,900. To avoid asset seizure, transfer payment immediately ke 5628-1190-3347.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_006",
+    "text": "Calling dari Public Bank. Suspicious activity detected. Please move savings ke this temporary protected account: 8899-7766-5544. Don't tell anyone pasal call ni.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_medium_risk_001",
+    "text": "Ini Aspire Credit. Your credit card payment RM 25,000 overdue 45 days. If payment tak diterima by Friday, kami akan take legal action and report ke CTOS. Commit to a date now.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_002",
+    "text": "Good afternoon, calling dari Maybank fraud team. Your account at risk. We need you share OTP yang baru hantar ke phone untuk verify identity.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_low_risk_005",
+    "text": "Hi, ini quick feedback call dari Asia Brilliant. How would you rate recent experience with us pada scale 1 to 5?",
+    "risk_level": "LOW_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_008",
+    "text": "This is Sergeant Lim dari JPN. Your IC dah digunakan for money laundering. Ada warrant for your arrest. Pay RM 15,000 bail ke 1234-5678-9012 immediately atau officers will come to your house.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_safe_009",
+    "text": "Good morning dari AIA Malaysia regarding life insurance policy ending 1156. Premium RM 5,800 due next month on 15th. Just confirming contact details. You boleh manage policy through AIA app.",
+    "risk_level": "SAFE",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_medium_risk_024",
+    "text": "Hi, you've been selected untuk luxury holiday package worth RM 1,250. Just pay booking fee RM 500 to confirm. Offer expires 6pm today.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_033",
+    "text": "This is Bank Islam. Kami transferring you to fraud officer. To proceed, please provide full Bank Islam card number and CVV code on the back.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_low_risk_004",
+    "text": "Calling dari AmBank customer experience team. You recently visited Kuala Lumpur branch. We'd appreciate 2-minute feedback survey. Kami tak akan ask personal details. Skip any question yang you tak comfortable.",
+    "risk_level": "LOW_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_014",
+    "text": "I'm senior crypto analyst. We ada insider info on token yang akan 10x this week. Minimum investment RM 12,400. Wallet address coming on WhatsApp.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_medium_risk_011",
+    "text": "Hi, you've been selected untuk luxury holiday package worth RM 1,250. Just pay booking fee RM 500 to confirm. Offer expires 6pm today.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_low_risk_012",
+    "text": "Hi, ini quick feedback call dari RCE Capital. How would you rate recent experience with us pada scale 1 to 5?",
+    "risk_level": "LOW_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_022",
+    "text": "Baby, I'm stuck at airport in London dan my wallet kena curi. I need RM 3,500 urgently for ticket home. Please transfer ke 8899-7766-5544. I promise I'll pay back. Don't tell anyone, I'm so embarrassed.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_medium_risk_010",
+    "text": "I'm calling pasal special timeshare opportunity. Limited slots, exclusive offer, tapi I need decision you today. Can I get IC dan bank details to reserve?",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_safe_006",
+    "text": "Hello dari RHB Bank. To process card replacement request, please confirm name and last 4 digits account. Thank you.",
+    "risk_level": "SAFE",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_034",
+    "text": "Hello, this is RHB Bank fraud monitoring. Your account dah compromised. For your safety, please transfer all funds ke our secure holding account: 5628-1190-3347.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_low_risk_015",
+    "text": "Hi, calling dari CIMB card centre. We have exclusive zero percent instalment plan untuk 12 months on purchases above RM 1,250 at selected merchants. You nak hear more?",
+    "risk_level": "LOW_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_medium_risk_006",
+    "text": "I'm conducting financial wellness survey for Bank Negara. I need monthly income, total savings, number of accounts, dan outstanding loans. Can I also get full name dan IC number you?",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_020",
+    "text": "Hello, ini J&T Express. A parcel under your name dah intercepted at customs containing illegal items. I'm transferring you ke investigating officer. You need pay fine RM 12,400 ke 7812-3344-5566 untuk clear your name.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_032",
+    "text": "Saya from Maybank compliance department. Untuk prevent your account from being frozen, please share your Secure2u approval code right now.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_safe_018",
+    "text": "Hello, ini DHL. We have parcel for you, tracking JT20249900. Kami cuba deliver today tapi tiada orang at home. You nak redelivery tomorrow 9am to 12pm, atau pickup dari Kuching hub?",
+    "risk_level": "SAFE",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_low_risk_007",
+    "text": "Hello, ini your insurance agent. Just reminder annual policy review next week. No payment needed at this stage.",
+    "risk_level": "LOW_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_medium_risk_021",
+    "text": "Good evening, calling dari Malaysian Red Crescent fundraiser for flood relief kat Kelantan. Would you like donate? I can give account number sekarang. For donations RM 12,400 or more, kami akan hantar tax-exempt receipt.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_018",
+    "text": "Hello, ini Digi. Your line dah flagged for illegal activities and akan terminated dalam 2 hours. Provide IC dan pay security deposit RM 2,300 ke 8899-7766-5544 untuk prevent suspension.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_medium_risk_016",
+    "text": "Unifi retention department. I see you nak port nombor out. Stay with us — I can offer 50 percent off untuk 6 months, tapi I need MyKad number you to process this sekarang.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_medium_risk_008",
+    "text": "Good evening, calling dari Malaysian Red Crescent fundraiser for flood relief kat Kelantan. Would you like donate? I can give account number sekarang. For donations RM 25,000 or more, kami akan hantar tax-exempt receipt.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_low_risk_001",
+    "text": "Hi, calling dari BSN card centre. We have exclusive zero percent instalment plan untuk 12 months on purchases above RM 1,250 at selected merchants. You nak hear more?",
+    "risk_level": "LOW_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_medium_risk_014",
+    "text": "Ini RCE Capital Credit. Your credit card payment RM 5,800 overdue 45 days. If payment tak diterima by Friday, kami akan take legal action and report ke CTOS. Commit to a date now.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_medium_risk_017",
+    "text": "Hello, ini Maybank. We noticed unusual login attempts dari new device. For security, please call us back at 1-300-88-6688 dalam 30 minutes. Have account number dan IC ready.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_039",
+    "text": "Ini LHDN. You being investigated for criminal activity. To avoid arrest, you mesti pay bail RM 5,800 immediately.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_medium_risk_023",
+    "text": "I'm calling pasal special timeshare opportunity. Limited slots, exclusive offer, tapi I need decision you today. Can I get IC dan bank details to reserve?",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_safe_005",
+    "text": "CIMB calling pasal recent application. Could you confirm last 4 digits IC for verification? Kami tak perlukan other personal information.",
+    "risk_level": "SAFE",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_low_risk_002",
+    "text": "U Mobile customer service. Kami ada new plan with 100GB data and unlimited calls untuk RM 80 monthly, RM 20 less than your current plan. No commitment. Interested?",
+    "risk_level": "LOW_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_040",
+    "text": "Important call dari LHDN. You ada outstanding tax RM 5,800. Pay dalam 24 hours atau warrant will be issued. Press 1 untuk speak dengan our enforcement officer now.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_safe_020",
+    "text": "Good morning dari AIA Malaysia regarding life insurance policy ending 5589. Premium RM 3,500 due next month on 15th. Just confirming contact details. You boleh manage policy through AIA app.",
+    "risk_level": "SAFE",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_safe_007",
+    "text": "Hello, ini J&T Express. We have parcel for you, tracking LZ20253152. Kami cuba deliver today tapi tiada orang at home. You nak redelivery tomorrow 9am to 12pm, atau pickup dari Petaling Jaya hub?",
+    "risk_level": "SAFE",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_021",
+    "text": "Lazada customs department. Your parcel ada contraband. To avoid criminal charges, transfer inspection fee RM 1,250 ke 7812-3344-5566 immediately.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_safe_011",
+    "text": "BSN confirming fund transfer RM 8,900 dari account ending 7736. Kalau you tak authorize this, please call 1-300-88-1900 immediately.",
+    "risk_level": "SAFE",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_safe_002",
+    "text": "Public Bank fraud monitoring. Card ending 5589 digunakan for RM 25,000 at electronics shop pukul 3pm. Did you make this purchase? Kalau tak, kami akan freeze the card immediately.",
+    "risk_level": "SAFE",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_027",
+    "text": "BSN IT department. Install AnyDesk now supaya we boleh resolve security alert on your device. Share 9-digit code yang muncul.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_medium_risk_022",
+    "text": "Hi, ini Children's Aid Foundation. We're raising funds untuk orphans. Boleh anda donate RM 1,250 ke account: 1234-5678-9012? Setiap ringgit helps.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_safe_008",
+    "text": "DHL dispatch. Your package out for delivery today. Driver akan call before arrival. No payment needed.",
+    "risk_level": "SAFE",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_low_risk_011",
+    "text": "Calling dari AmBank customer experience team. You recently visited Petaling Jaya branch. We'd appreciate 2-minute feedback survey. Kami tak akan ask personal details. Skip any question yang you tak comfortable.",
+    "risk_level": "LOW_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_medium_risk_012",
+    "text": "Ini third notice dari RCE Capital Credit Recovery. Your debt RM 25,000 mesti settled by Monday atau kami proceed to court. Apa your payment plan?",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_010",
+    "text": "Ini LHDN. You being investigated for criminal activity. To avoid arrest, you mesti pay bail RM 50,000 immediately.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_low_risk_009",
+    "text": "U Mobile customer service. Kami ada new plan with 100GB data and unlimited calls untuk RM 80 monthly, RM 20 less than your current plan. No commitment. Interested?",
+    "risk_level": "LOW_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_016",
+    "text": "Good news! Your personal loan RM 1,250 dah pre-approved. To release funds today, just pay processing fee RM 500 ke 5628-1190-3347. Limited time offer.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_026",
+    "text": "I'm from AmBank technical support. To fix your account issue, please download TeamViewer dan give me access code. We need remotely check your phone.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_low_risk_010",
+    "text": "AmBank Premier service. We'd like offer you a complimentary financial planning session at flagship branch. Are you free next week?",
+    "risk_level": "LOW_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_037",
+    "text": "This is Sergeant Catherine dari MCMC. Your IC dah digunakan for money laundering. Ada warrant for your arrest. Pay RM 12,400 bail ke 1234-5678-9012 immediately atau officers will come to your house.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_036",
+    "text": "CIMB security alert. Your money at risk. Transfer immediately ke 8899-7766-5544 for safekeeping while we investigate.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_medium_risk_025",
+    "text": "Ini third notice dari AEON Credit Recovery. Your debt RM 50,000 mesti settled by Monday atau kami proceed to court. Apa your payment plan?",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_medium_risk_019",
+    "text": "I'm conducting financial wellness survey for Bank Negara. I need monthly income, total savings, number of accounts, dan outstanding loans. Can I also get full name dan IC number you?",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_low_risk_006",
+    "text": "Reminder: appointment dengan Public Bank relationship manager pukul 2pm tomorrow at Petaling Jaya branch. Please bring IC. To reschedule, call 1-800-22-5555.",
+    "risk_level": "LOW_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_025",
+    "text": "CIMB security update. Install new app dari link saya baru hantar. Then share verification code yang muncul on your screen.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_medium_risk_004",
+    "text": "Hello, ini Bank Islam. We noticed unusual login attempts dari new device. For security, please call us back at 03-2609-0900 dalam 30 minutes. Have account number dan IC ready.",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_011",
+    "text": "Important call dari LHDN. You ada outstanding tax RM 8,900. Pay dalam 24 hours atau warrant will be issued. Press 1 untuk speak dengan our enforcement officer now.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_safe_015",
+    "text": "RHB Bank reminder: credit card minimum payment RM 8,900 due dalam 3 days. Payment boleh dibuat via RHB Now atau any branch.",
+    "risk_level": "SAFE",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_safe_013",
+    "text": "CIMB fraud monitoring. Card ending 7736 digunakan for RM 3,500 at online shop pukul 3pm. Did you make this purchase? Kalau tak, kami akan freeze the card immediately.",
+    "risk_level": "SAFE",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_030",
+    "text": "Hello, ini CIMB security department. We detected unauthorised access pada CIMB Clicks account you. Please share full IC number dan online banking password sekarang juga supaya kami secure your account.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_013",
+    "text": "Congratulations! You dah selected for exclusive forex programme guaranteeing 30 percent monthly returns. Just deposit RM 1,250 ke 7812-3344-5566 untuk secure your spot. This offer expires today.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_028",
+    "text": "Good morning, Bogus Bank security team. Suspicious activity pada account you. I need full username dan password untuk verify identity. Ini standard procedure.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  },
+  {
+    "name": "mixed_high_risk_017",
+    "text": "Your loan application approved. Transfer insurance fee RM 800 ke 1234-5678-9012 dalam sejam atau the approval akan dibatalkan.",
+    "risk_level": "HIGH_RISK",
+    "lang": "mixed"
+  }
+]

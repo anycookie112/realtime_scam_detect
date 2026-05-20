@@ -1,0 +1,149 @@
+# Eval profiles — defines the runs you can launch via run_eval.sh
+#
+# Usage:  ./run_eval.sh <profile>
+# List:   ./run_eval.sh list-profiles
+#
+# Each profile becomes one tmux-launchable command. The "args" list is passed
+# verbatim to `uv run tools/eval/run_eval.py`. Add new profiles freely — they
+# show up automatically in run_eval.sh.
+
+defaults:
+  # Path to the eval script (relative to project root)
+  script: tools/eval/run_eval.py
+  # Tmux session name
+  session: scam-eval
+  # Where to write the wrapper logs (separate from the eval's own report dirs)
+  log_dir: logs/eval_runs
+
+profiles:
+
+  # ── Smoke tests ──────────────────────────────────────────────────────────
+
+  quick:
+    description: "Smoke test — 5 English clips, 1 config (~1 min)"
+    args:
+      - --only=A_whisperBase_E2B
+      - --lang=en
+      - --limit=5
+
+  smoke_all_langs:
+    description: "5 clips per language, single config (~5 min)"
+    args:
+      - --only=A_whisperBase_E2B
+      - --lang=en,ms,mixed,zh
+      - --limit=5
+
+  # ── Single config runs ───────────────────────────────────────────────────
+
+  e2b_base_en:
+    description: "Pipeline A, Whisper base, E2B — English only (~10 min)"
+    args:
+      - --only=A_whisperBase_E2B
+      - --lang=en
+
+  e2b_base_all:
+    description: "Pipeline A, Whisper base, E2B — all 4 languages (~45 min)"
+    args:
+      - --only=A_whisperBase_E2B
+      - --lang=all
+
+  e4b_base_all:
+    description: "Pipeline A, Whisper base, E4B — all 4 languages (~60 min)"
+    args:
+      - --only=A_whisperBase_E4B
+      - --lang=all
+
+  pipeline_b_all:
+    description: "Pipeline B (audio direct), E2B — all langs (~45 min)"
+    args:
+      - --only=B_audio_E2B
+      - --lang=all
+
+  # ── Full matrix ──────────────────────────────────────────────────────────
+
+  full:
+    description: "Full matrix × all 4 langs (~4-6 hours)"
+    args:
+      - --lang=all
+
+  full_en:
+    description: "Full matrix, English only (~1 hour)"
+    args:
+      - --lang=en
+
+  # Run each config in its own subprocess so a single failure doesn't kill
+  # the whole sweep. Slower than `full` but safer for long unattended runs.
+  each:
+    description: "Each config separately, all langs — failure-isolated (~5-7 hours)"
+    sequential_configs:
+      - A_whisperBase_E2B
+      - A_whisperMedium_E2B
+      - A_whisperBase_E4B
+      - A_whisperMedium_E4B
+      - B_audio_E2B
+      - B_audio_E4B
+    args:
+      - --lang=all
+
+  # ── Streaming simulation ─────────────────────────────────────────────────
+
+  streaming_quick:
+    description: "Streaming sim, 1 config, English (~30 min)"
+    args:
+      - --only=A_whisperBase_E2B
+      - --lang=en
+      - --streaming
+      - --chunk-seconds=15
+      - --overlap-seconds=1
+
+  streaming_all:
+    description: "Streaming sim across all langs, 1 config (~1-2 hours)"
+    args:
+      - --only=A_whisperBase_E2B
+      - --lang=all
+      - --streaming
+      - --chunk-seconds=15
+      - --overlap-seconds=1
+      - --restart-every=200
+
+  streaming_full:
+    description: "Streaming sim, full matrix × all langs (~10-15 hours)"
+    args:
+      - --lang=all
+      - --streaming
+      - --chunk-seconds=15
+      - --overlap-seconds=1
+      - --restart-every=200
+
+  # ── Targeted subsets ─────────────────────────────────────────────────────
+
+  adversarial:
+    description: "Adversarial set only, 2 configs (~30 min)"
+    args:
+      - --only=A_whisperBase_E2B,A_whisperBase_E4B
+      - --lang=all
+      - --filter=adv_
+
+  malaysian_banks:
+    description: "Bank impersonation scenarios only, 1 config (~20 min)"
+    args:
+      - --only=A_whisperBase_E2B
+      - --lang=all
+      - --filter=maybank
+
+  gradual_scam:
+    description: "Long gradual scam scenario (streaming, all configs)"
+    args:
+      - --lang=en
+      - --filter=maybank_gradual_scam
+      - --streaming
+      - --chunk-seconds=15
+      - --overlap-seconds=1
+
+  # ── Whisper comparison ───────────────────────────────────────────────────
+
+  whisper_sweep:
+    description: "Compare Whisper sizes (base vs medium) on E2B (~2 hours)"
+    args:
+      - --only=A_whisperBase_E2B,A_whisperMedium_E2B
+      - --lang=en

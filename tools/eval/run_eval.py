@@ -56,26 +56,21 @@ from tqdm import tqdm
 
 @contextlib.contextmanager
 def silence_fds():
-    """Redirect OS-level stdout/stderr (fds 1 and 2) to /dev/null.
+    """Redirect OS-level stdout (fd 1) to /dev/null. STDERR is preserved.
 
-    The litert_lm engine logs via C++ (glog/absl), which ignores any Python
-    sys.stdout redirection. We dup2 /dev/null over fds 1/2 for the duration,
-    then restore. Anything the progress bar or print() calls want to emit
-    during this window is lost — so wrap only the inference call, not the
-    whole loop.
+    The litert_lm engine logs via C++ (glog/absl) on stdout, which ignores any
+    Python sys.stdout redirection. We dup2 /dev/null over fd 1 only — leaving
+    stderr alone so segfaults / OOMs / aborts still leave a trace in the log.
     """
-    saved_out, saved_err = os.dup(1), os.dup(2)
+    saved_out = os.dup(1)
     devnull = os.open(os.devnull, os.O_WRONLY)
     try:
         os.dup2(devnull, 1)
-        os.dup2(devnull, 2)
         yield
     finally:
         os.dup2(saved_out, 1)
-        os.dup2(saved_err, 2)
         os.close(devnull)
         os.close(saved_out)
-        os.close(saved_err)
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 TEST_AUDIO_ROOT = PROJECT_ROOT / "test_audio"
@@ -94,17 +89,17 @@ _LEGACY_MAP = {
 }
 
 # Acceptance rules: which predictions count as correct for each expected label.
+# Stricter: only allow asymmetric slack toward over-alerting (better safe than
+# sorry). Under-alerting (SAFE→LOW_RISK, MEDIUM_RISK→LOW_RISK) is wrong.
 ACCEPTABLE_PREDICTIONS: dict[str, frozenset[str]] = {
     "HIGH_RISK":   frozenset({"HIGH_RISK", "SCAM"}),
-    "SAFE":        frozenset({"SAFE", "LOW_RISK", "LEGITIMATE"}),
-    "LOW_RISK":    frozenset({"SAFE", "LOW_RISK", "LEGITIMATE"}),
-    "MEDIUM_RISK": frozenset({"MEDIUM_RISK", "HIGH_RISK", "LOW_RISK",
-                              "SCAM", "UNCERTAIN"}),
+    "SAFE":        frozenset({"SAFE", "LEGITIMATE"}),
+    "LOW_RISK":    frozenset({"LOW_RISK"}),
+    "MEDIUM_RISK": frozenset({"MEDIUM_RISK", "HIGH_RISK", "SCAM", "UNCERTAIN"}),
     # Legacy labels from old filenames
     "SCAM":        frozenset({"HIGH_RISK", "SCAM"}),
-    "LEGITIMATE":  frozenset({"SAFE", "LOW_RISK", "LEGITIMATE"}),
-    "SUSPICIOUS":  frozenset({"MEDIUM_RISK", "HIGH_RISK", "LOW_RISK",
-                              "SCAM", "UNCERTAIN"}),
+    "LEGITIMATE":  frozenset({"SAFE", "LEGITIMATE"}),
+    "SUSPICIOUS":  frozenset({"MEDIUM_RISK", "HIGH_RISK", "SCAM", "UNCERTAIN"}),
 }
 
 
@@ -117,6 +112,16 @@ def is_correct(expected: str, predicted: str) -> bool:
 
 def label_from_filename(stem: str) -> str:
     s = stem.lower()
+    # New naming: <lang>_<risk_level>_NNN (e.g., en_high_risk_001)
+    if "_high_risk_" in s or s.endswith("_high_risk"):
+        return "HIGH_RISK"
+    if "_medium_risk_" in s or s.endswith("_medium_risk"):
+        return "MEDIUM_RISK"
+    if "_low_risk_" in s or s.endswith("_low_risk"):
+        return "LOW_RISK"
+    if "_safe_" in s or s.endswith("_safe"):
+        return "SAFE"
+    # Legacy naming: *_scam, *_legit, *_suspicious
     if s.endswith("_legit") or "_legit_" in s:
         return "SAFE"
     if s.endswith("_suspicious") or "_suspicious_" in s:
@@ -166,6 +171,7 @@ class SampleResult:
     llm_time: float
     total_time: float
     used_tool: bool
+    tool_parse_error: bool = False
     config: str = ""
     lang: str = ""
     raw_response: dict = field(default_factory=dict)
@@ -291,6 +297,7 @@ def infer_clip(engine, wav_bytes: bytes, pipeline: str) -> dict:
     t0 = time.time()
     response = None
     err: str | None = None
+    tool_parse_error = False
     try:
         with silence_fds():
             conv = engine.create_conversation(
@@ -304,18 +311,22 @@ def infer_clip(engine, wav_bytes: bytes, pipeline: str) -> dict:
                 conv.__exit__(None, None, None)
     except Exception as e:  # noqa: BLE001 — engine raises bare Exception
         err = f"{type(e).__name__}: {e}"
-        traceback.print_exc(file=sys.stderr)
+        if "Failed to parse" in err and "tool calls" in err:
+            tool_parse_error = True
+        else:
+            traceback.print_exc(file=sys.stderr)
     llm_time = time.time() - t0
 
     if err is not None:
         return {
-            "verdict": "ERROR",
+            "verdict": "TOOL_PARSE_ERROR" if tool_parse_error else "ERROR",
             "summary": err,
             "transcription": asr_text,
             "recommendations": [],
             "asr_time": asr_time,
             "llm_time": llm_time,
             "used_tool": False,
+            "tool_parse_error": tool_parse_error,
             "raw": {},
         }
 
@@ -344,6 +355,7 @@ def infer_clip(engine, wav_bytes: bytes, pipeline: str) -> dict:
         "asr_time": asr_time,
         "llm_time": llm_time,
         "used_tool": used_tool,
+        "tool_parse_error": False,
         "raw": response or {},
     }
 
@@ -378,6 +390,7 @@ def infer_clip_streaming(
             "asr_time": 0.0,
             "llm_time": 0.0,
             "used_tool": False,
+            "tool_parse_error": False,
             "verdict_flips": 0,
             "first_correct_chunk": -1,
             "total_chunks": 0,
@@ -427,6 +440,7 @@ def infer_clip_streaming(
         "asr_time": total_asr,
         "llm_time": total_llm,
         "used_tool": any(s.get("used_tool") for s in segment_results),
+        "tool_parse_error": any(s.get("tool_parse_error") for s in segment_results),
         "verdict_flips": verdict_flips,
         "first_correct_chunk": first_correct_chunk,
         "total_chunks": len(chunks),
@@ -435,18 +449,30 @@ def infer_clip_streaming(
 
 # ── Metrics (unchanged from old eval) ────────────────────────────────────────
 
+def _normalize(label: str) -> str:
+    """Normalize legacy and new labels to the new risk-level vocabulary."""
+    return _LEGACY_MAP.get(label, label)
+
+
 def compute_metrics(results: list[SampleResult]) -> dict:
+    # Normalize all expected/predicted to new vocabulary, fall back to MEDIUM_RISK
+    # for anything we don't recognize (instead of dropping it).
     confusion: dict[str, dict[str, int]] = {l: defaultdict(int) for l in LABELS}
     for r in results:
-        pred = r.predicted if r.predicted in LABELS or r.predicted == "UNCERTAIN" else "UNCERTAIN"
-        confusion.setdefault(r.expected, defaultdict(int))
-        confusion[r.expected][pred] += 1
+        exp = _normalize(r.expected)
+        pred = _normalize(r.predicted) if r.predicted else "MEDIUM_RISK"
+        if pred not in LABELS:
+            pred = "MEDIUM_RISK"
+        confusion.setdefault(exp, defaultdict(int))
+        confusion[exp][pred] += 1
 
     per_class = {}
     for cls in LABELS:
         accept = ACCEPTABLE_PREDICTIONS.get(cls, {cls})
         tp = sum(confusion[cls].get(p, 0) for p in accept)
         fn = sum(v for k, v in confusion[cls].items() if k not in accept)
+        # FP: predicted as cls (or accepted as cls) when expected was something
+        # that doesn't accept cls.
         fp = sum(
             confusion[other].get(cls, 0)
             for other in LABELS
@@ -460,11 +486,14 @@ def compute_metrics(results: list[SampleResult]) -> dict:
             "precision": round(precision, 3), "recall": round(recall, 3), "f1": round(f1, 3),
         }
 
-    alert_labels = {"SCAM", "SUSPICIOUS"}
+    # Binary alert view: did we flag the call as risky enough to warn the user?
+    # Alert = MEDIUM_RISK or HIGH_RISK predicted.
+    # Expected alert = the file is labeled HIGH_RISK or MEDIUM_RISK.
+    alert_labels = {"HIGH_RISK", "MEDIUM_RISK"}
     bin_tp = bin_fp = bin_fn = bin_tn = 0
     for r in results:
-        ea = r.expected in alert_labels
-        pa = r.predicted in alert_labels
+        ea = _normalize(r.expected) in alert_labels
+        pa = _normalize(r.predicted) in alert_labels
         if ea and pa: bin_tp += 1
         elif ea and not pa: bin_fn += 1
         elif not ea and pa: bin_fp += 1
@@ -474,6 +503,20 @@ def compute_metrics(results: list[SampleResult]) -> dict:
     bf = 2 * bp * br / (bp + br) if (bp + br) else 0.0
     fpr = bin_fp / (bin_fp + bin_tn) if (bin_fp + bin_tn) else 0.0
     fnr = bin_fn / (bin_fn + bin_tp) if (bin_fn + bin_tp) else 0.0
+
+    # High-risk specific view: did we catch the actual scams (not just suspicious)?
+    high_tp = high_fp = high_fn = high_tn = 0
+    for r in results:
+        eh = _normalize(r.expected) == "HIGH_RISK"
+        ph = _normalize(r.predicted) == "HIGH_RISK"
+        if eh and ph: high_tp += 1
+        elif eh and not ph: high_fn += 1
+        elif not eh and ph: high_fp += 1
+        else: high_tn += 1
+    hp = high_tp / (high_tp + high_fp) if (high_tp + high_fp) else 0.0
+    hr = high_tp / (high_tp + high_fn) if (high_tp + high_fn) else 0.0
+    hf = 2 * hp * hr / (hp + hr) if (hp + hr) else 0.0
+    h_fpr = high_fp / (high_fp + high_tn) if (high_fp + high_tn) else 0.0
 
     total = len(results)
     correct = sum(1 for r in results if r.correct)
@@ -487,7 +530,14 @@ def compute_metrics(results: list[SampleResult]) -> dict:
             "precision": round(bp, 3), "recall": round(br, 3), "f1": round(bf, 3),
             "fpr": round(fpr, 3), "fnr": round(fnr, 3),
         },
+        "high_risk_view": {
+            "tp": high_tp, "fp": high_fp, "fn": high_fn, "tn": high_tn,
+            "precision": round(hp, 3), "recall": round(hr, 3), "f1": round(hf, 3),
+            "fpr": round(h_fpr, 3),
+        },
         "tool_use_rate":   round(sum(1 for r in results if r.used_tool) / total, 3) if total else 0.0,
+        "tool_parse_error_count": sum(1 for r in results if r.tool_parse_error),
+        "tool_parse_error_rate": round(sum(1 for r in results if r.tool_parse_error) / total, 3) if total else 0.0,
         "avg_asr_time_s":  round(sum(r.asr_time for r in results) / total, 2) if total else 0.0,
         "avg_llm_time_s":  round(sum(r.llm_time for r in results) / total, 2) if total else 0.0,
         "avg_total_time_s": round(sum(r.total_time for r in results) / total, 2) if total else 0.0,
@@ -523,10 +573,17 @@ def print_report(cfg_name: str, metrics: dict, results: list[SampleResult]) -> N
         print(f"  {cls:<12} {m['support']:>4} {m['precision']:>6.3f} "
               f"{m['recall']:>6.3f} {m['f1']:>6.3f}  {m['tp']}/{m['fp']}/{m['fn']}")
     b = metrics["binary_alert_view"]
-    print("\nBinary safety view (alert = SCAM|SUSPICIOUS):")
+    print("\nBinary alert view (alert = MEDIUM_RISK | HIGH_RISK):")
     print(f"  precision={b['precision']}  recall={b['recall']}  f1={b['f1']}")
     print(f"  FPR={b['fpr']}  FNR={b['fnr']}  (TP={b['tp']} FP={b['fp']} FN={b['fn']} TN={b['tn']})")
+    h = metrics.get("high_risk_view", {})
+    if h:
+        print("\nHigh-risk only view (alert = HIGH_RISK):")
+        print(f"  precision={h['precision']}  recall={h['recall']}  f1={h['f1']}")
+        print(f"  FPR={h['fpr']}  (TP={h['tp']} FP={h['fp']} FN={h['fn']} TN={h['tn']})")
     print(f"\nTool-call rate: {metrics['tool_use_rate']}")
+    print(f"Tool-parse error rate: {metrics['tool_parse_error_rate']} "
+          f"({metrics['tool_parse_error_count']}/{metrics['total']})")
     print(f"Avg ASR/LLM/total: {metrics['avg_asr_time_s']}s / "
           f"{metrics['avg_llm_time_s']}s / {metrics['avg_total_time_s']}s")
 
@@ -555,13 +612,14 @@ def write_report_files(report_dir: Path, metrics: dict, results: list[SampleResu
     with (report_dir / "results.csv").open("w", newline="") as f:
         w = csv.writer(f)
         header = ["name", "config", "expected", "predicted", "correct",
-                  "used_tool", "asr_time_s", "llm_time_s", "total_time_s", "summary"]
+                  "used_tool", "tool_parse_error",
+                  "asr_time_s", "llm_time_s", "total_time_s", "summary"]
         if has_streaming:
             header += ["total_chunks", "verdict_flips", "first_correct_chunk"]
         w.writerow(header)
         for r in results:
             row = [r.name, r.config, r.expected, r.predicted,
-                   int(r.correct), int(r.used_tool),
+                   int(r.correct), int(r.used_tool), int(r.tool_parse_error),
                    r.asr_time, r.llm_time, r.total_time, r.summary]
             if has_streaming:
                 row += [r.total_chunks, r.verdict_flips, r.first_correct_chunk]
@@ -582,7 +640,8 @@ def write_matrix_summary_multilang(
         w.writerow([
             "config", "lang", "n", "accuracy",
             "bin_precision", "bin_recall", "bin_f1", "fpr", "fnr",
-            "tool_rate", "avg_asr_s", "avg_llm_s", "avg_total_s",
+            "tool_rate", "tool_parse_err_rate",
+            "avg_asr_s", "avg_llm_s", "avg_total_s",
         ])
         for cfg_name, cfg_metrics in all_metrics.items():
             for lang in row_langs:
@@ -593,7 +652,8 @@ def write_matrix_summary_multilang(
                 w.writerow([
                     cfg_name, lang, m["total"], m["accuracy"],
                     b["precision"], b["recall"], b["f1"], b["fpr"], b["fnr"],
-                    m["tool_use_rate"], m["avg_asr_time_s"], m["avg_llm_time_s"], m["avg_total_time_s"],
+                    m["tool_use_rate"], m.get("tool_parse_error_rate", 0.0),
+                    m["avg_asr_time_s"], m["avg_llm_time_s"], m["avg_total_time_s"],
                 ])
     print(f"\nMatrix summary: {path}")
 
@@ -608,7 +668,7 @@ def print_matrix_table_multilang(
     print(" Matrix comparison")
     print("=" * 104)
     hdr = (f"  {'config':<24}{'lang':>7}{'acc':>8}{'binF1':>8}"
-           f"{'FPR':>7}{'FNR':>7}{'tool%':>8}{'asr_s':>8}{'llm_s':>8}{'tot_s':>8}")
+           f"{'FPR':>7}{'FNR':>7}{'tool%':>8}{'tpErr%':>8}{'asr_s':>8}{'llm_s':>8}{'tot_s':>8}")
     print(hdr)
     for cfg_name, cfg_metrics in all_metrics.items():
         for lang in row_langs:
@@ -618,6 +678,7 @@ def print_matrix_table_multilang(
             b = m["binary_alert_view"]
             print(f"  {cfg_name:<24}{lang:>7}{m['accuracy']:>8.3f}{b['f1']:>8.3f}"
                   f"{b['fpr']:>7.3f}{b['fnr']:>7.3f}{m['tool_use_rate']:>8.3f}"
+                  f"{m.get('tool_parse_error_rate', 0.0):>8.3f}"
                   f"{m['avg_asr_time_s']:>8.2f}{m['avg_llm_time_s']:>8.2f}{m['avg_total_time_s']:>8.2f}")
         print()
 
@@ -631,14 +692,16 @@ def write_matrix_summary(base_dir: Path, all_metrics: dict[str, dict]) -> None:
         w.writerow([
             "config", "n", "accuracy",
             "bin_precision", "bin_recall", "bin_f1", "fpr", "fnr",
-            "tool_rate", "avg_asr_s", "avg_llm_s", "avg_total_s",
+            "tool_rate", "tool_parse_err_rate",
+            "avg_asr_s", "avg_llm_s", "avg_total_s",
         ])
         for name, m in all_metrics.items():
             b = m["binary_alert_view"]
             w.writerow([
                 name, m["total"], m["accuracy"],
                 b["precision"], b["recall"], b["f1"], b["fpr"], b["fnr"],
-                m["tool_use_rate"], m["avg_asr_time_s"], m["avg_llm_time_s"], m["avg_total_time_s"],
+                m["tool_use_rate"], m.get("tool_parse_error_rate", 0.0),
+                m["avg_asr_time_s"], m["avg_llm_time_s"], m["avg_total_time_s"],
             ])
     print(f"\nMatrix summary: {path}")
 
@@ -648,12 +711,13 @@ def print_matrix_table(all_metrics: dict[str, dict]) -> None:
     print("=" * 96)
     print(" Matrix comparison")
     print("=" * 96)
-    hdr = f"  {'config':<24}{'acc':>7}{'binF1':>8}{'FPR':>7}{'FNR':>7}{'tool%':>8}{'asr_s':>8}{'llm_s':>8}{'tot_s':>8}"
+    hdr = f"  {'config':<24}{'acc':>7}{'binF1':>8}{'FPR':>7}{'FNR':>7}{'tool%':>8}{'tpErr%':>8}{'asr_s':>8}{'llm_s':>8}{'tot_s':>8}"
     print(hdr)
     for name, m in all_metrics.items():
         b = m["binary_alert_view"]
         print(f"  {name:<24}{m['accuracy']:>7.3f}{b['f1']:>8.3f}{b['fpr']:>7.3f}{b['fnr']:>7.3f}"
-              f"{m['tool_use_rate']:>8.3f}{m['avg_asr_time_s']:>8.2f}{m['avg_llm_time_s']:>8.2f}{m['avg_total_time_s']:>8.2f}")
+              f"{m['tool_use_rate']:>8.3f}{m.get('tool_parse_error_rate', 0.0):>8.3f}"
+              f"{m['avg_asr_time_s']:>8.2f}{m['avg_llm_time_s']:>8.2f}{m['avg_total_time_s']:>8.2f}")
 
 
 # ── Discovery ────────────────────────────────────────────────────────────────
@@ -704,6 +768,46 @@ def discover_clips(
 
 # ── Per-config runner ────────────────────────────────────────────────────────
 
+def _load_checkpoint(path: Path) -> tuple[list[SampleResult], set[str]]:
+    """Read a partial checkpoint CSV and rebuild SampleResult rows.
+
+    Fields not stored in the checkpoint (transcription, recommendations,
+    raw_response) are filled with empty defaults — they're not used in
+    metrics, only in the final per-clip JSON report.
+    """
+    results: list[SampleResult] = []
+    done: set[str] = set()
+    if not path.exists():
+        return results, done
+    with path.open(newline="") as f:
+        for row in csv.DictReader(f):
+            name = row["name"]
+            if name in done:
+                continue  # dedupe in case the file was appended weirdly
+            done.add(name)
+            results.append(SampleResult(
+                name=name,
+                expected=row["expected"],
+                predicted=row["predicted"],
+                correct=bool(int(row["correct"])),
+                transcription="",
+                summary=row.get("summary", ""),
+                recommendations=[],
+                asr_time=float(row["asr_time_s"]),
+                llm_time=float(row["llm_time_s"]),
+                total_time=float(row["total_time_s"]),
+                used_tool=bool(int(row["used_tool"])),
+                tool_parse_error=bool(int(row.get("tool_parse_error", "0"))),
+                config=row["config"],
+                lang=row["lang"],
+                raw_response={},
+                verdict_flips=int(row.get("verdict_flips", "0")),
+                first_correct_chunk=int(row.get("first_correct_chunk", "-1")),
+                total_chunks=int(row.get("total_chunks", "0")),
+            ))
+    return results, done
+
+
 def run_config(
     cfg: ModelConfig,
     clips: list[tuple[Path, str, str]],
@@ -711,6 +815,9 @@ def run_config(
     streaming: bool = False,
     chunk_seconds: float = 4.0,
     overlap_seconds: float = 0.5,
+    checkpoint_path: Path | None = None,
+    resume: bool = False,
+    restart_every: int = 0,
 ) -> list[SampleResult]:
     mode_label = " [streaming]" if streaming else ""
     print()
@@ -725,14 +832,59 @@ def run_config(
     if cfg.pipeline == "a":
         reset_whisper(cfg.whisper_size)
 
+    # Resume: pre-load completed clips from a previous run's checkpoint and
+    # filter the work list down to what's left.
+    results: list[SampleResult] = []
+    done: set[str] = set()
+    if resume and checkpoint_path is not None:
+        results, done = _load_checkpoint(checkpoint_path)
+        if done:
+            before = len(clips)
+            clips = [(w, e, l) for (w, e, l) in clips if w.stem not in done]
+            print(f"  resume: {len(done)} completed, {len(clips)} remaining "
+                  f"(skipped {before - len(clips)})")
+    correct_count = sum(1 for r in results if r.correct)
+
+    if not clips:
+        print("  nothing to do — all clips already in checkpoint.")
+        return results
+
     engine = load_llm_engine(cfg.llm_repo, cfg.llm_file, cfg.backend)
 
-    results: list[SampleResult] = []
-    correct_count = 0
+    # Open per-config checkpoint CSV. Append on resume, write+header otherwise,
+    # and flush+fsync after every row so a crash leaves completed clips on disk.
+    ckpt_f = ckpt_w = None
+    if checkpoint_path is not None:
+        checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
+        appending = resume and done
+        mode = "a" if appending else "w"
+        ckpt_f = checkpoint_path.open(mode, newline="", buffering=1)
+        ckpt_w = csv.writer(ckpt_f)
+        if not appending:
+            ckpt_w.writerow([
+                "name", "config", "lang", "expected", "predicted", "correct",
+                "used_tool", "tool_parse_error",
+                "asr_time_s", "llm_time_s", "total_time_s",
+                "total_chunks", "verdict_flips", "first_correct_chunk",
+                "summary",
+            ])
+        print(f"  checkpoint: {checkpoint_path} ({'append' if appending else 'fresh'})")
+
     errors: list[str] = []
     bar = tqdm(clips, desc=cfg.name, unit="clip", dynamic_ncols=True, leave=True)
+    clips_since_restart = 0
+    if restart_every > 0:
+        print(f"  engine restart: every {restart_every} clips (GPU leak workaround)")
     try:
         for wav, expected, lang in bar:
+            # Periodically tear down + reload the engine to release GPU
+            # allocations that litert_lm/WebGPU don't free on their own.
+            if restart_every > 0 and clips_since_restart >= restart_every:
+                bar.write(f"  [restart] reloading engine after {clips_since_restart} clips")
+                unload_llm_engine(engine)
+                engine = load_llm_engine(cfg.llm_repo, cfg.llm_file, cfg.backend)
+                clips_since_restart = 0
+
             try:
                 wav_bytes = wav.read_bytes()
                 if streaming:
@@ -747,6 +899,7 @@ def run_config(
                 errors.append(f"{wav.name}: {type(e).__name__}: {e}")
                 traceback.print_exc(file=sys.stderr)
                 continue
+            clips_since_restart += 1
             verdict = (out["verdict"] or "UNCERTAIN").upper()
             total = out["asr_time"] + out["llm_time"]
             r = SampleResult(
@@ -761,6 +914,7 @@ def run_config(
                 llm_time=round(out["llm_time"], 3),
                 total_time=round(total, 3),
                 used_tool=out["used_tool"],
+                tool_parse_error=out.get("tool_parse_error", False),
                 config=cfg.name,
                 lang=lang,
                 raw_response=out.get("raw", {}),
@@ -771,6 +925,16 @@ def run_config(
             results.append(r)
             if r.correct:
                 correct_count += 1
+            if ckpt_w is not None:
+                ckpt_w.writerow([
+                    r.name, r.config, r.lang, r.expected, r.predicted,
+                    int(r.correct), int(r.used_tool), int(r.tool_parse_error),
+                    r.asr_time, r.llm_time, r.total_time,
+                    r.total_chunks, r.verdict_flips, r.first_correct_chunk,
+                    r.summary,
+                ])
+                ckpt_f.flush()
+                os.fsync(ckpt_f.fileno())
             bar.set_postfix(
                 lang=lang,
                 acc=f"{correct_count / len(results):.2f}",
@@ -779,6 +943,8 @@ def run_config(
             )
     finally:
         bar.close()
+        if ckpt_f is not None:
+            ckpt_f.close()
         unload_llm_engine(engine)
 
     if errors:
@@ -825,6 +991,13 @@ def main() -> None:
                    help="Chunk size in seconds for streaming simulation (default 4.0)")
     p.add_argument("--overlap-seconds", type=float, default=0.5,
                    help="Overlap between chunks in seconds (default 0.5)")
+    p.add_argument("--resume", nargs="?", const="latest", default=None,
+                   help="Resume a previous run. With no value, picks the latest "
+                        "logs/eval/<timestamp>/ dir; or pass an explicit dir.")
+    p.add_argument("--restart-every", type=int, default=0,
+                   help="Tear down + reload the LLM engine every N clips within "
+                        "a config (workaround for GPU/WebGPU memory leaks). "
+                        "0 = never restart (default).")
     args = p.parse_args()
 
     langs = resolve_langs(args.lang)
@@ -846,8 +1019,21 @@ def main() -> None:
     for c in configs:
         print(f"  - {c.name}")
 
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    base_dir = REPORTS_DIR / timestamp
+    if args.resume:
+        if args.resume == "latest":
+            existing = sorted(p for p in REPORTS_DIR.glob("*") if p.is_dir())
+            if not existing:
+                sys.exit(f"--resume: no prior runs under {REPORTS_DIR}")
+            base_dir = existing[-1]
+        else:
+            base_dir = Path(args.resume)
+            if not base_dir.is_dir():
+                sys.exit(f"--resume: {base_dir} is not a directory")
+        timestamp = base_dir.name
+        print(f"Resuming run: {base_dir}")
+    else:
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        base_dir = REPORTS_DIR / timestamp
     t_start = time.time()
 
     # all_metrics[config_name][lang_or_ALL] = metrics dict
@@ -863,6 +1049,9 @@ def main() -> None:
                 streaming=args.streaming,
                 chunk_seconds=args.chunk_seconds,
                 overlap_seconds=args.overlap_seconds,
+                checkpoint_path=base_dir / cfg.name / "_checkpoint.csv",
+                resume=bool(args.resume),
+                restart_every=args.restart_every,
             )
         except Exception as e:  # noqa: BLE001
             print(f"\n!! config {cfg.name} crashed: {type(e).__name__}: {e}")

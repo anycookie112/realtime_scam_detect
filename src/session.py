@@ -554,10 +554,31 @@ def run_turn(
     # ── Tool callbacks ──────────────────────────────────────────────────
     tool_result: dict = {}
 
+    def _recover_typos(known: set[str], extra: dict) -> dict:
+        """Map typo'd kwargs onto their intended fields.
+
+        Smaller models occasionally emit names like `risk_score_score` (suffix
+        doubled) or `caller_claim` (singular). We accept any unknown kwarg
+        whose name starts with or differs by suffix from a known field and
+        merge it in if the canonical field wasn't already provided.
+        """
+        recovered: dict = {}
+        for k, v in extra.items():
+            for canon in known:
+                if k != canon and (k.startswith(canon) or canon.startswith(k)):
+                    recovered.setdefault(canon, v)
+                    break
+        return recovered
+
+    _SPEECH_FIELDS = {"transcription", "risk_level", "risk_score",
+                      "summary", "recommendations",
+                      "info_requested", "caller_claims"}
+
     def analyze_speech(
-        transcription: str, risk_level: str, risk_score: int,
-        summary: str, recommendations: str,
-        info_requested: str, caller_claims: str,
+        transcription: str = "", risk_level: str = "", risk_score: int = 0,
+        summary: str = "", recommendations: str = "",
+        info_requested: str = "", caller_claims: str = "",
+        **_extra,
     ) -> str:
         """Report your analysis of this audio segment.
 
@@ -570,6 +591,22 @@ def run_turn(
             info_requested: What information the caller has asked for so far (comma separated).
             caller_claims: Who the caller says they are (name, org, staff ID).
         """
+        if _extra:
+            recovered = _recover_typos(_SPEECH_FIELDS, _extra)
+            if not risk_score and "risk_score" in recovered:
+                risk_score = recovered["risk_score"]
+            if not risk_level and "risk_level" in recovered:
+                risk_level = recovered["risk_level"]
+            if not summary and "summary" in recovered:
+                summary = recovered["summary"]
+            if not recommendations and "recommendations" in recovered:
+                recommendations = recovered["recommendations"]
+            if not info_requested and "info_requested" in recovered:
+                info_requested = recovered["info_requested"]
+            if not caller_claims and "caller_claims" in recovered:
+                caller_claims = recovered["caller_claims"]
+            if not transcription and "transcription" in recovered:
+                transcription = recovered["transcription"]
         tool_result["type"] = "audio"
         tool_result["transcription"] = transcription
         tool_result["risk_level"] = risk_level
@@ -580,9 +617,13 @@ def run_turn(
         tool_result["caller_claims"] = caller_claims
         return "OK"
 
+    _DOC_FIELDS = {"description", "risk_level", "risk_score",
+                   "summary", "recommendations"}
+
     def analyze_document(
-        description: str, risk_level: str, risk_score: int,
-        summary: str, recommendations: str,
+        description: str = "", risk_level: str = "", risk_score: int = 0,
+        summary: str = "", recommendations: str = "",
+        **_extra,
     ) -> str:
         """Report your analysis of an image (document, screenshot, or message).
 
@@ -593,6 +634,18 @@ def run_turn(
             summary: 1-2 sentence summary of the document.
             recommendations: Advice for the user. Separated by newlines.
         """
+        if _extra:
+            recovered = _recover_typos(_DOC_FIELDS, _extra)
+            if not risk_score and "risk_score" in recovered:
+                risk_score = recovered["risk_score"]
+            if not risk_level and "risk_level" in recovered:
+                risk_level = recovered["risk_level"]
+            if not summary and "summary" in recovered:
+                summary = recovered["summary"]
+            if not recommendations and "recommendations" in recovered:
+                recommendations = recovered["recommendations"]
+            if not description and "description" in recovered:
+                description = recovered["description"]
         tool_result["type"] = "document"
         tool_result["description"] = description
         tool_result["risk_level"] = risk_level
@@ -624,7 +677,7 @@ def run_turn(
         # litert_lm throws RuntimeError when it can't parse the tool call
         # format, but the raw model output is embedded in the error message.
         # Extract it and fall back to lenient parsing.
-        if "Failed to parse tool calls" in err_str:
+        if "Failed to parse" in err_str and "tool calls" in err_str:
             tool_parse_fallback = err_str
             print(f"  [tool-parse fallback] recovering from: {err_str[:120]}...")
         else:
@@ -747,6 +800,7 @@ def run_turn(
         "asr_time": asr_time,
         "llm_time": llm_time,
         "used_tool": used_tool,
+        "tool_parse_error": tool_parse_fallback is not None,
         "detected_bank": detected_bank,
         "notepad": {
             "caller_identity": session.caller_identity,

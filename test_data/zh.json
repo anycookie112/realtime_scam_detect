@@ -1,0 +1,602 @@
+[
+  {
+    "name": "zh_low_risk_015",
+    "text": "您好,这里是回教银行信用卡中心。我们有一个独家12个月零利率分期付款计划,适用于在指定商户的RM 12,400以上购物。您想了解更多吗?",
+    "risk_level": "LOW_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_medium_risk_014",
+    "text": "这里是永旺信贷。您的RM 3,500信用卡欠款已逾期45天。如果周五前未收到付款,我们将采取法律行动并报告CTOS。请现在承诺日期。",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_034",
+    "text": "您好,这里是大马银行欺诈监控部。您的账户已被入侵。为了您的安全,请将所有资金转入我们的安全保管账户:9001-2233-4455。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_low_risk_009",
+    "text": "Celcom客户服务。我们有新计划,每月RM 80提供100GB数据和无限通话,比您当前的计划便宜RM 20。无合约。感兴趣吗?",
+    "risk_level": "LOW_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_021",
+    "text": "DHL海关部门。您的包裹含有违禁品。要避免刑事指控,请立即将RM 50,000检查费转入1234-5678-9012。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_020",
+    "text": "您好,这里是FedEx。一个以您名字的包裹在海关被截获,内含违禁品。我将把您转给调查官。您需要支付RM 25,000罚款到7812-3344-5566以洗清您的名字。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_035",
+    "text": "联昌银行打来电话。检测到可疑活动。请将您的存款转移到这个临时保护账户:9001-2233-4455。不要告诉任何人这通电话。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_safe_001",
+    "text": "您好,这里是丰隆银行,关于您卡号尾号6612的交易。今天在马六甲的电器店有一笔RM 15,000的消费。是您本人吗?如果不是,我们会冻结卡片,您可以带身份证到任何分行。",
+    "risk_level": "SAFE",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_037",
+    "text": "我是PDRM Bukit Aman的Daniel警长。您的身份证被用于洗钱活动。已对您发出逮捕令。请立即将RM 12,400保释金转入7812-3344-5566,否则警员将上门。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_036",
+    "text": "马来亚银行安全警报。您的钱面临风险。请立即转入8899-7766-5544保管,我们正在调查。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_medium_risk_017",
+    "text": "您好,这里是丰隆银行。我们注意到来自新设备的异常登录尝试。出于安全考虑,请在30分钟内回拨03-7626-8899。请准备好账号和身份证。",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_medium_risk_025",
+    "text": "这是RCE金融信贷追讨的第三次通知。您的RM 2,300债务必须在周一前结清,否则我们将提交法庭。您的付款计划是什么?",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_medium_risk_002",
+    "text": "您好,我是Aspire保险的。您当前的保障非常不足。如果发生意外,您的家人将陷入麻烦。我有一个每月RM 25,000的计划。我今天需要您的答复,优惠今晚到期。",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_031",
+    "text": "下午好,这里是大众银行反欺诈团队。您的账户面临风险。我们需要您提供刚刚发送到您手机上的OTP验证码以确认身份。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_005",
+    "text": "您好,这里是联昌银行欺诈监控部。您的账户已被入侵。为了您的安全,请将所有资金转入我们的安全保管账户:5628-1190-3347。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_medium_risk_009",
+    "text": "您好,这里是儿童援助基金会。我们正在为孤儿筹款。您能捐RM 8,900到我们的账户吗:5628-1190-3347?每一令吉都有帮助。",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_032",
+    "text": "我是联昌银行合规部的。为了防止您的账户被冻结,请立即提供您的Secure2u批准代码。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_safe_007",
+    "text": "您好,这里是Ninja Van。我们有您的包裹,追踪号PL20262287。我们今天尝试派送但无人在家。您希望明天上午9点到12点重送,还是从我们的槟城枢纽自取?",
+    "risk_level": "SAFE",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_safe_014",
+    "text": "您好,这是国家储蓄银行的礼貌电话。您的房贷分期RM 890将于20日到期。如果您已付款,请忽略。如有疑问请致电1-300-88-1900或访问任何分行。",
+    "risk_level": "SAFE",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_safe_017",
+    "text": "您好,马来亚银行。要处理您的换卡请求,请确认您的姓名和账户最后4位数字。谢谢。",
+    "risk_level": "SAFE",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_030",
+    "text": "您好,这里是联昌银行安全部门。我们检测到您的网上银行账户有未经授权的访问。请立即提供您的完整身份证号码和网上银行密码,以便我们保护您的账户。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_safe_016",
+    "text": "回教银行就您最近的申请来电。您能确认身份证最后4位数字以供验证吗?我们不需要其他个人信息。",
+    "risk_level": "SAFE",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_medium_risk_011",
+    "text": "您好,您被选中获得价值RM 8,900的豪华假期套餐。只需支付RM 500预订费即可确认。优惠今天下午6点到期。",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_018",
+    "text": "您好,这里是TM。您的电话线已被标记为非法活动,将在2小时内终止。提供您的身份证并将RM 5,800保证金转入9001-2233-4455以防止暂停。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_low_risk_008",
+    "text": "您好,这里是兴业银行信用卡中心。我们有一个独家12个月零利率分期付款计划,适用于在指定商户的RM 50,000以上购物。您想了解更多吗?",
+    "risk_level": "LOW_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_low_risk_011",
+    "text": "联昌银行客户体验团队来电。您最近访问了我们的莎阿南分行。我们希望您参加2分钟的反馈调查。我们不会询问个人详情。您可以跳过任何不舒服的问题。",
+    "risk_level": "LOW_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_medium_risk_018",
+    "text": "大众银行反欺诈团队。检测到可疑活动。请紧急回拨1-800-22-5555。不要拖延,否则您的账户可能被锁定。",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_safe_006",
+    "text": "您好,国家储蓄银行。要处理您的换卡请求,请确认您的姓名和账户最后4位数字。谢谢。",
+    "risk_level": "SAFE",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_safe_008",
+    "text": "DHL调度。您的包裹今天派送中。司机会在到达前致电。无需付款。",
+    "risk_level": "SAFE",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_safe_004",
+    "text": "马来亚银行提醒:您的信用卡最低还款额RM 450将在3天内到期。可通过网上银行或任何分行付款。",
+    "risk_level": "SAFE",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_medium_risk_021",
+    "text": "晚上好,这里是马来西亚红新月会的吉兰丹水灾救援募捐。您愿意捐款吗?我现在可以给您我们的账号。RM 5,800或以上的捐款,我们会发送免税收据。",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_medium_risk_004",
+    "text": "您好,这里是大马银行。我们注意到来自新设备的异常登录尝试。出于安全考虑,请在30分钟内回拨03-2178-8888。请准备好账号和身份证。",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_safe_002",
+    "text": "国家储蓄银行欺诈监控。您尾号7736的卡片下午3点在珠宝店消费RM 890。是您本人购买的吗?如果不是,我们将立即冻结卡片。",
+    "risk_level": "SAFE",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_medium_risk_013",
+    "text": "最后警告。您未付的RM 2,300账单明天将转交收账机构。请立即付款以避免法律行动。",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_011",
+    "text": "重要电话,LHDN内陆税务局。您有RM 12,400的拖欠税款。请在24小时内付款,否则将发出逮捕令。请按1与我们的执法官员通话。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_008",
+    "text": "我是PDRM Bukit Aman的Hassan警长。您的身份证被用于洗钱活动。已对您发出逮捕令。请立即将RM 15,000保释金转入1234-5678-9012,否则警员将上门。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_003",
+    "text": "我是联昌银行合规部的。为了防止您的账户被冻结,请立即提供您的Secure2u批准代码。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_007",
+    "text": "兴业银行安全警报。您的钱面临风险。请立即转入1234-5678-9012保管,我们正在调查。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_022",
+    "text": "宝贝,我被困在伦敦机场,钱包被偷了。我急需RM 50,000买票回家。请转账到9001-2233-4455。我保证会还你。不要告诉任何人,我太尴尬了。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_medium_risk_022",
+    "text": "您好,这里是儿童援助基金会。我们正在为孤儿筹款。您能捐RM 5,800到我们的账户吗:1234-5678-9012?每一令吉都有帮助。",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_004",
+    "text": "这里是马来亚银行。我们将把您转接到反欺诈官员。请提供您完整的马来亚银行卡号和卡背面的CVV代码以继续。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_low_risk_004",
+    "text": "大众银行客户体验团队来电。您最近访问了我们的怡保分行。我们希望您参加2分钟的反馈调查。我们不会询问个人详情。您可以跳过任何不舒服的问题。",
+    "risk_level": "LOW_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_001",
+    "text": "您好,这里是回教银行安全部门。我们检测到您的网上银行账户有未经授权的访问。请立即提供您的完整身份证号码和网上银行密码,以便我们保护您的账户。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_low_risk_006",
+    "text": "提醒:您与大众银行客户经理的预约是明天下午2点在怡保分行。请带上您的身份证。要重新安排,请致电1-800-22-5555。",
+    "risk_level": "LOW_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_low_risk_003",
+    "text": "马来亚银行尊贵服务。我们想为您提供旗舰分行的免费财务规划课程。下周您方便吗?",
+    "risk_level": "LOW_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_safe_018",
+    "text": "您好,这里是FedEx。我们有您的包裹,追踪号JT20259671。我们今天尝试派送但无人在家。您希望明天上午9点到12点重送,还是从我们的吉隆坡枢纽自取?",
+    "risk_level": "SAFE",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_medium_risk_012",
+    "text": "这是Aspire信贷追讨的第三次通知。您的RM 25,000债务必须在周一前结清,否则我们将提交法庭。您的付款计划是什么?",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_low_risk_007",
+    "text": "您好,我是您的保险代理。只是提醒您下周年度保单审查。此时无需付款。",
+    "risk_level": "LOW_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_low_risk_014",
+    "text": "您好,我是您的保险代理。只是提醒您下周年度保单审查。此时无需付款。",
+    "risk_level": "LOW_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_medium_risk_001",
+    "text": "这里是亚洲光辉信贷。您的RM 15,000信用卡欠款已逾期45天。如果周五前未收到付款,我们将采取法律行动并报告CTOS。请现在承诺日期。",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_038",
+    "text": "我是PDRM的Ahmad督察。您的银行账户与毒品贩运有关。要洗清您的名声,请立即转账RM 25,000到7812-3344-5566。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_006",
+    "text": "丰隆银行打来电话。检测到可疑活动。请将您的存款转移到这个临时保护账户:1234-5678-9012。不要告诉任何人这通电话。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_016",
+    "text": "好消息!您的RM 450个人贷款已预批准。要今天放款,只需支付RM 500手续费到9001-2233-4455。限时优惠。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_002",
+    "text": "下午好,这里是兴业银行反欺诈团队。您的账户面临风险。我们需要您提供刚刚发送到您手机上的OTP验证码以确认身份。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_028",
+    "text": "早上好,Bogus Bank安全团队。您的账户有可疑活动。我需要您完整的用户名和密码来验证身份。这是标准程序。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_013",
+    "text": "恭喜!您被选中参加独家外汇计划,保证每月30%回报。只需将RM 1,250存入7812-3344-5566即可保留您的位置。优惠今天到期。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_medium_risk_019",
+    "text": "我正在为国家银行进行金融健康调查。我需要您的月收入、总储蓄、账户数量和未偿还贷款。我也可以获取您的全名和身份证号码吗?",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_low_risk_013",
+    "text": "提醒:您与丰隆银行客户经理的预约是明天下午2点在新山分行。请带上您的身份证。要重新安排,请致电03-7626-8899。",
+    "risk_level": "LOW_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_medium_risk_003",
+    "text": "Maxis挽留部门。我看到您想转出号码。留在我们这里,我可以提供6个月50%折扣,但我现在需要您的MyKad号码处理。",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_015",
+    "text": "您好,我是Lim,来自一家私人投资基金。会员上个月赚了RM 15,000。保证回报,零风险。发送RM 15,000到5628-1190-3347开始。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_medium_risk_023",
+    "text": "我打电话是关于一个特别的分时度假机会。名额有限,独家优惠,但我今天需要您的决定。我可以获取您的身份证和银行详情来预订吗?",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_low_risk_010",
+    "text": "大众银行尊贵服务。我们想为您提供旗舰分行的免费财务规划课程。下周您方便吗?",
+    "risk_level": "LOW_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_medium_risk_020",
+    "text": "政府卫生调查。我们需要您的全名、身份证、地址和家庭收入用于国家统计。调查需要10分钟。",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_019",
+    "text": "U Mobile客户服务。您的号码被用于犯罪活动。请立即提供身份证、MyKad号码和银行详情验证身份。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_027",
+    "text": "大众银行 IT部门。立即安装AnyDesk,以便我们解决您设备上的安全警报。分享出现的9位代码。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_safe_012",
+    "text": "您好,这里是回教银行,关于您卡号尾号9234的交易。今天在吉隆坡的名牌店有一笔RM 25,000的消费。是您本人吗?如果不是,我们会冻结卡片,您可以带身份证到任何分行。",
+    "risk_level": "SAFE",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_medium_risk_006",
+    "text": "我正在为国家银行进行金融健康调查。我需要您的月收入、总储蓄、账户数量和未偿还贷款。我也可以获取您的全名和身份证号码吗?",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_medium_risk_008",
+    "text": "晚上好,这里是马来西亚红新月会的吉兰丹水灾救援募捐。您愿意捐款吗?我现在可以给您我们的账号。RM 890或以上的捐款,我们会发送免税收据。",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_safe_013",
+    "text": "联昌银行欺诈监控。您尾号7736的卡片下午3点在珠宝店消费RM 1,250。是您本人购买的吗?如果不是,我们将立即冻结卡片。",
+    "risk_level": "SAFE",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_012",
+    "text": "LHDN审计部。您的企业有RM 450未付税款。要避免资产被查封,请立即将款项转入9001-2233-4455。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_safe_015",
+    "text": "大马银行提醒:您的信用卡最低还款额RM 50,000将在3天内到期。可通过网上银行或任何分行付款。",
+    "risk_level": "SAFE",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_040",
+    "text": "重要电话,LHDN内陆税务局。您有RM 890的拖欠税款。请在24小时内付款,否则将发出逮捕令。请按1与我们的执法官员通话。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_low_risk_005",
+    "text": "您好,这是来自RCE金融的快速反馈电话。在1到5的范围内,您如何评价最近与我们的体验?",
+    "risk_level": "LOW_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_023",
+    "text": "亲爱的,我妈妈在医院,我无法访问账户。你能转RM 8,900到7812-3344-5566帮忙付医药费吗?我爱你,下周还你。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_safe_010",
+    "text": "马来亚银行尊贵服务。提醒您明天下午2点与八打灵再也分行的Amir女士有预约。请带身份证。要重新安排,请致电1-300-88-6688。",
+    "risk_level": "SAFE",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_014",
+    "text": "我是高级加密分析师。我们有内幕消息一个代币本周将上涨10倍。最低投资RM 5,800。钱包地址将通过WhatsApp发送。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_024",
+    "text": "这里是大众银行数字银行支持。您的PB engage应用需要更新。点击我发送到您短信的链接下载安全更新。您需要重新输入用户名和密码进行验证。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_safe_003",
+    "text": "您好,这是马来亚银行的礼貌电话。您的房贷分期RM 15,000将于20日到期。如果您已付款,请忽略。如有疑问请致电1-300-88-6688或访问任何分行。",
+    "risk_level": "SAFE",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_medium_risk_005",
+    "text": "丰隆银行反欺诈团队。检测到可疑活动。请紧急回拨03-7626-8899。不要拖延,否则您的账户可能被锁定。",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_safe_005",
+    "text": "大众银行就您最近的申请来电。您能确认身份证最后4位数字以供验证吗?我们不需要其他个人信息。",
+    "risk_level": "SAFE",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_safe_019",
+    "text": "FedEx调度。您的包裹今天派送中。司机会在到达前致电。无需付款。",
+    "risk_level": "SAFE",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_medium_risk_016",
+    "text": "Unifi挽留部门。我看到您想转出号码。留在我们这里,我可以提供6个月50%折扣,但我现在需要您的MyKad号码处理。",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_medium_risk_010",
+    "text": "我打电话是关于一个特别的分时度假机会。名额有限,独家优惠,但我今天需要您的决定。我可以获取您的身份证和银行详情来预订吗?",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_safe_009",
+    "text": "早上好,AIA马来西亚就您尾号6612的人寿保单来电。您的RM 450保费将于下个月15日到期。只是确认您的联系详情。您可以通过AIA应用管理保单。",
+    "risk_level": "SAFE",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_009",
+    "text": "我是PDRM的Catherine督察。您的银行账户与毒品贩运有关。要洗清您的名声,请立即转账RM 25,000到1234-5678-9012。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_medium_risk_024",
+    "text": "您好,您被选中获得价值RM 12,400的豪华假期套餐。只需支付RM 500预订费即可确认。优惠今天下午6点到期。",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_low_risk_012",
+    "text": "您好,这是来自Aspire的快速反馈电话。在1到5的范围内,您如何评价最近与我们的体验?",
+    "risk_level": "LOW_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_low_risk_002",
+    "text": "Unifi客户服务。我们有新计划,每月RM 80提供100GB数据和无限通话,比您当前的计划便宜RM 20。无合约。感兴趣吗?",
+    "risk_level": "LOW_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_010",
+    "text": "这里是Pos Laju customs。您正在因犯罪活动被调查。要避免被捕,您必须立即支付RM 450保释金。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_039",
+    "text": "这里是MCMC。您正在因犯罪活动被调查。要避免被捕,您必须立即支付RM 890保释金。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_017",
+    "text": "您的贷款申请获批。请在一小时内将RM 800保险费转入8899-7766-5544,否则批准将被取消。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_026",
+    "text": "我是丰隆银行技术支持。要修复您的账户问题,请下载TeamViewer并给我访问代码。我们需要远程检查您的手机。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_025",
+    "text": "大马银行安全更新。从我刚发送的链接安装新应用。然后分享屏幕上出现的验证码。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_033",
+    "text": "这里是国家储蓄银行。我们将把您转接到反欺诈官员。请提供您完整的国家储蓄银行卡号和卡背面的CVV代码以继续。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_low_risk_001",
+    "text": "您好,这里是丰隆银行信用卡中心。我们有一个独家12个月零利率分期付款计划,适用于在指定商户的RM 3,500以上购物。您想了解更多吗?",
+    "risk_level": "LOW_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_safe_020",
+    "text": "早上好,AIA马来西亚就您尾号9234的人寿保单来电。您的RM 2,300保费将于下个月15日到期。只是确认您的联系详情。您可以通过AIA应用管理保单。",
+    "risk_level": "SAFE",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_medium_risk_015",
+    "text": "您好,我是Aspire保险的。您当前的保障非常不足。如果发生意外,您的家人将陷入麻烦。我有一个每月RM 12,400的计划。我今天需要您的答复,优惠今晚到期。",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_medium_risk_007",
+    "text": "政府卫生调查。我们需要您的全名、身份证、地址和家庭收入用于国家统计。调查需要10分钟。",
+    "risk_level": "MEDIUM_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_high_risk_029",
+    "text": "Bogus Bank来电。请分享您的6位OTP并安装TeamViewer,以便我们保护您的账户。不要告诉任何人这通电话。",
+    "risk_level": "HIGH_RISK",
+    "lang": "zh"
+  },
+  {
+    "name": "zh_safe_011",
+    "text": "丰隆银行确认您从尾号1156账户的RM 12,400转账。如果您未授权此交易,请立即致电03-7626-8899。",
+    "risk_level": "SAFE",
+    "lang": "zh"
+  }
+]
